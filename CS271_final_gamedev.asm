@@ -6,17 +6,14 @@ TITLE gamedev     (CS271_final_gamedev.asm)
 
 INCLUDE Irvine32.inc
 
-; (insert constant definitions here)
 
 .data
 
-; (insert variable definitions here)
     ex BYTE "test 1 2 3.", 0
 
 .code
 main PROC
-
-; (insert executable instructions here)
+begin:
     call Clrscr
     mov EDX, OFFSET ex
     call WriteString
@@ -25,6 +22,5 @@ main PROC
 	exit	; exit to operating system
 main ENDP
 
-; (insert additional procedures here)
 
 END main
