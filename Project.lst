@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.24.28316.0	    03/02/20 10:35:32
+Microsoft (R) Macro Assembler Version 14.24.28316.0	    03/03/20 19:47:14
 %gamedev     (CS271_final_gamedev.asm			     Page 1 - 1
 
 
@@ -26,37 +26,97 @@ Microsoft (R) Macro Assembler Version 14.24.28316.0	    03/02/20 10:35:32
 			      C .NOLIST
 			      C .LIST
 			      C 
+				INCLUDE Macros.inc
+			      C .NOLIST
+			      C .LIST
+			      C 
 
-				; (insert constant definitions here)
 
  00000000			.data
-
-				; (insert variable definitions here)
- 00000000 74 65 73 74 20	    ex BYTE "test 1 2 3.", 0
-	   31 20 32 20 33
-	   2E 00
 
  00000000			.code
  00000000			main PROC
 
-				; (insert executable instructions here)
- 00000000  E8 00000000 E	    call Clrscr
- 00000005  BA 00000000 R	    mov EDX, OFFSET ex
- 0000000A  E8 00000000 E	    call WriteString
- 0000000F  E8 00000000 E	    call Crlf
+ 00000000  B8 0000000A		L1: mov EAX, 10
+ 00000005  E8 00000000 E	    call Delay
+ 0000000A  E8 00000000 E	    call ReadKey
+ 0000000F  74 EF		    jz L1
 
-					exit	; exit to operating system
- 00000014  6A 00	   *	    push   +000000000h
- 00000016  E8 00000000 E   *	    call   ExitProcess
- 0000001B			main ENDP
+ 00000011  66| 83 FA 27		    cmp dx, VK_RIGHT
+ 00000015  75 0E		    jne L2
+				    mWrite <"Right key is pressed", 0dh, 0ah>
+ 00000000		     1		.data		
+ 00000000 52 69 67 68 74     1		??0000 BYTE "Right key is pressed", 0dh, 0ah,0	
+	   20 6B 65 79 20
+	   69 73 20 70 72
+	   65 73 73 65 64
+	   0D 0A 00
+ 00000017		     1		.code
+ 00000017  52		     1		push	edx
+ 00000018  BA 00000000 R     1		mov	edx,OFFSET ??0000
+ 0000001D  E8 00000000 E     1		call	WriteString
+ 00000022  5A		     1		pop	edx
+ 00000023  EB 20		    jmp L4
+ 00000025			L2: 
+ 00000025  66| 83 FA 25		    cmp dx, VK_LEFT
+ 00000029  75 0E		    jne L3
+				    mWrite <"Left key is pressed", 0dh, 0ah>
+ 00000017		     1		.data		
+ 00000017 4C 65 66 74 20     1		??0001 BYTE "Left key is pressed", 0dh, 0ah,0	
+	   6B 65 79 20 69
+	   73 20 70 72 65
+	   73 73 65 64 0D
+	   0A 00
+ 0000002B		     1		.code
+ 0000002B  52		     1		push	edx
+ 0000002C  BA 00000017 R     1		mov	edx,OFFSET ??0001
+ 00000031  E8 00000000 E     1		call	WriteString
+ 00000036  5A		     1		pop	edx
+ 00000037  EB 0C		    jmp L4
+ 00000039			L3: 
+				    mWrite <"Arrow key is not pressed", 0dh, 0ah>
+ 0000002D		     1		.data		
+ 0000002D 41 72 72 6F 77     1		??0002 BYTE "Arrow key is not pressed", 0dh, 0ah,0	
+	   20 6B 65 79 20
+	   69 73 20 6E 6F
+	   74 20 70 72 65
+	   73 73 65 64 0D
+	   0A 00
+ 00000039		     1		.code
+ 00000039  52		     1		push	edx
+ 0000003A  BA 0000002D R     1		mov	edx,OFFSET ??0002
+ 0000003F  E8 00000000 E     1		call	WriteString
+ 00000044  5A		     1		pop	edx
+ 00000045			L4:
+				    exit	; exit to operating system
+ 00000045  6A 00	   *	    push   +000000000h
+ 00000047  E8 00000000 E   *	    call   ExitProcess
+ 0000004C			main ENDP
 
-				; (insert additional procedures here)
 
 				END main
-Microsoft (R) Macro Assembler Version 14.24.28316.0	    03/02/20 10:35:32
+Microsoft (R) Macro Assembler Version 14.24.28316.0	    03/03/20 19:47:14
 %gamedev     (CS271_final_gamedev.asm			     Symbols 2 - 1
 
 
+
+
+Macros:
+
+                N a m e                 Type
+
+IsDefined  . . . . . . . . . . .	Func
+Startup  . . . . . . . . . . . .	Proc
+mDumpMem . . . . . . . . . . . .	Proc
+mDump  . . . . . . . . . . . . .	Proc
+mGotoxy  . . . . . . . . . . . .	Proc
+mReadString  . . . . . . . . . .	Proc
+mShowRegister  . . . . . . . . .	Proc
+mShow  . . . . . . . . . . . . .	Proc
+mWriteLn . . . . . . . . . . . .	Proc
+mWriteSpace  . . . . . . . . . .	Proc
+mWriteString . . . . . . . . . .	Proc
+mWrite . . . . . . . . . . . . .	Proc
 
 
 Structures and Unions:
@@ -147,8 +207,8 @@ Segments and Groups:
 
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
-_DATA  . . . . . . . . . . . . .	32 Bit	 0000000C Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 0000001B Para	  Public  'CODE'	
+_DATA  . . . . . . . . . . . . .	32 Bit	 00000048 Para	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 0000004C Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
@@ -255,7 +315,11 @@ WriteStackFrame  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 WriteString  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteToFile  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteWindowsMsg  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 0000001B Public STDCALL
+main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 0000004C Public STDCALL
+  L1 . . . . . . . . . . . . . .	L Near	 00000000 _TEXT	
+  L2 . . . . . . . . . . . . . .	L Near	 00000025 _TEXT	
+  L3 . . . . . . . . . . . . . .	L Near	 00000039 _TEXT	
+  L4 . . . . . . . . . . . . . .	L Near	 00000045 _TEXT	
 printf . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 scanf  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 wsprintfA  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
@@ -265,6 +329,9 @@ Symbols:
 
                 N a m e                 Type     Value    Attr
 
+??0000 . . . . . . . . . . . . .	Byte	 00000000 _DATA	
+??0001 . . . . . . . . . . . . .	Byte	 00000017 _DATA	
+??0002 . . . . . . . . . . . . .	Byte	 0000002D _DATA	
 @CodeSize  . . . . . . . . . . .	Number	 00000000h   
 @DataSize  . . . . . . . . . . .	Number	 00000000h   
 @Interface . . . . . . . . . . .	Number	 00000003h   
@@ -479,7 +546,6 @@ blue . . . . . . . . . . . . . .	Number	 00000001h
 brown  . . . . . . . . . . . . .	Number	 00000006h   
 cyan . . . . . . . . . . . . . .	Number	 00000003h   
 exit . . . . . . . . . . . . . .	Text   	 INVOKE ExitProcess,0
-ex . . . . . . . . . . . . . . .	Byte	 00000000 _DATA	
 gray . . . . . . . . . . . . . .	Number	 00000008h   
 green  . . . . . . . . . . . . .	Number	 00000002h   
 lightBlue  . . . . . . . . . . .	Number	 00000009h   
