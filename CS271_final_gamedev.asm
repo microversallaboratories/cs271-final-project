@@ -7,15 +7,21 @@ TITLE gamedev     (CS271_final_gamedev.asm)
 INCLUDE Irvine32.inc
 INCLUDE Macros.inc
 
+; MIN_X EQU 0                                       ; WIP
+; MAX_X EQU 32                                      ; WIP
 
 .data
-endl EQU <0dh, 0ah>         ; End of Line Sequence
-charX BYTE 10               ; Size of DL: 1 byte
-charY BYTE 6               ; Size of DH: 1 byte
-char BYTE "@", 0            ; Character
-wall BYTE "################", 0     ; Wall, 16 character long
-sideWall BYTE "#              #", 0     ; Side Wall
-lineNumber BYTE 1
+endl        EQU <0dh, 0ah>                          ; End of Line Sequence
+gameTitle   BYTE "@'s Adventure", 0
+consoleSize SMALL_RECT <0, 0, 40, 20>
+consoleCursor CONSOLE_CURSOR_INFO <100, 0>          ; Set second Argument to 1 if want to see visible cursor
+
+charX       BYTE 10                                 ; Size of DL: 1 byte
+charY       BYTE 6                                  ; Size of DH: 1 byte
+char        BYTE "@", 0                             ; Character
+wall        BYTE "################", 0              ; Wall, 16 character long
+sideWall    BYTE "#..............#", 0              ; Side Wall
+lineNumber  BYTE 1
 
 consoleHandle HANDLE 0
 bytesWritten DWORD ?
@@ -23,8 +29,18 @@ bytesWritten DWORD ?
 .code
 main PROC
 Setup:
+    INVOKE SetConsoleTitle, ADDR gameTitle
     INVOKE GetStdHandle, STD_OUTPUT_HANDLE
     mov consoleHandle, EAX
+
+    INVOKE SetConsoleWindowInfo, 
+        consoleHandle,
+        TRUE,
+        ADDR consoleSize
+
+    INVOKE SetConsoleCursorInfo,
+        consoleHandle,
+        ADDR consoleCursor
 
 GameLoop:
 
@@ -84,7 +100,6 @@ DrawCharacter:
         1,
         ADDR bytesWritten,
         0
-    
 
 KeyInput:
     KeyInputLoop:
