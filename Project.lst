@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.24.28316.0	    03/03/20 19:47:14
+Microsoft (R) Macro Assembler Version 14.24.28316.0	    03/03/20 20:36:14
 %gamedev     (CS271_final_gamedev.asm			     Page 1 - 1
 
 
@@ -37,65 +37,119 @@ Microsoft (R) Macro Assembler Version 14.24.28316.0	    03/03/20 19:47:14
  00000000			.code
  00000000			main PROC
 
- 00000000  B8 0000000A		L1: mov EAX, 10
- 00000005  E8 00000000 E	    call Delay
- 0000000A  E8 00000000 E	    call ReadKey
- 0000000F  74 EF		    jz L1
-
- 00000011  66| 83 FA 27		    cmp dx, VK_RIGHT
- 00000015  75 0E		    jne L2
-				    mWrite <"Right key is pressed", 0dh, 0ah>
+ 00000000			KeyInput:
+ 00000000			    KeyInputLoop:
+ 00000000  B8 0000000A		        mov EAX, 10     ; Delay time
+ 00000005  E8 00000000 E	        call Delay      ; Delay
+ 0000000A  E8 00000000 E	        call ReadKey    ; Read Key input
+ 0000000F  74 EF		        jz KeyInputLoop ; Jump back to KeyInputLoop if there is no key input
+ 00000011			    LeftKeyCheck:
+ 00000011  66| 83 FA 25		        cmp dx, VK_LEFT
+ 00000015  75 0E		        jne UpKeyCheck
+				        mWrite <"Left key is pressed", 0dh, 0ah>
  00000000		     1		.data		
- 00000000 52 69 67 68 74     1		??0000 BYTE "Right key is pressed", 0dh, 0ah,0	
-	   20 6B 65 79 20
-	   69 73 20 70 72
-	   65 73 73 65 64
-	   0D 0A 00
+ 00000000 4C 65 66 74 20     1		??0000 BYTE "Left key is pressed", 0dh, 0ah,0	
+	   6B 65 79 20 69
+	   73 20 70 72 65
+	   73 73 65 64 0D
+	   0A 00
  00000017		     1		.code
  00000017  52		     1		push	edx
  00000018  BA 00000000 R     1		mov	edx,OFFSET ??0000
  0000001D  E8 00000000 E     1		call	WriteString
  00000022  5A		     1		pop	edx
- 00000023  EB 20		    jmp L4
- 00000025			L2: 
- 00000025  66| 83 FA 25		    cmp dx, VK_LEFT
- 00000029  75 0E		    jne L3
-				    mWrite <"Left key is pressed", 0dh, 0ah>
- 00000017		     1		.data		
- 00000017 4C 65 66 74 20     1		??0001 BYTE "Left key is pressed", 0dh, 0ah,0	
+ 00000023  EB 5E		        jmp KeyInputEnd
+ 00000025			    UpKeyCheck:
+ 00000025  66| 83 FA 26		        cmp dx, VK_UP
+ 00000029  75 0E		        jne RightKeyCheck
+				        mWrite <"Up key is pressed", 0dh, 0ah>
+ 00000016		     1		.data		
+ 00000016 55 70 20 6B 65     1		??0001 BYTE "Up key is pressed", 0dh, 0ah,0	
+	   79 20 69 73 20
+	   70 72 65 73 73
+	   65 64 0D 0A 00
+ 0000002B		     1		.code
+ 0000002B  52		     1		push	edx
+ 0000002C  BA 00000016 R     1		mov	edx,OFFSET ??0001
+ 00000031  E8 00000000 E     1		call	WriteString
+ 00000036  5A		     1		pop	edx
+ 00000037  EB 4A		        jmp KeyInputEnd
+ 00000039			    RightKeyCheck:
+ 00000039  66| 83 FA 27		        cmp dx, VK_Right
+ 0000003D  75 0E		        jne DownKeyCheck
+				        mWrite <"Right key is pressed", 0dh, 0ah>
+ 0000002A		     1		.data		
+ 0000002A 52 69 67 68 74     1		??0002 BYTE "Right key is pressed", 0dh, 0ah,0	
+	   20 6B 65 79 20
+	   69 73 20 70 72
+	   65 73 73 65 64
+	   0D 0A 00
+ 0000003F		     1		.code
+ 0000003F  52		     1		push	edx
+ 00000040  BA 0000002A R     1		mov	edx,OFFSET ??0002
+ 00000045  E8 00000000 E     1		call	WriteString
+ 0000004A  5A		     1		pop	edx
+ 0000004B  EB 36		        jmp KeyInputEnd
+ 0000004D			    DownKeyCheck:
+ 0000004D  66| 83 FA 28		        cmp dx, VK_DOWN
+ 00000051  75 0E		        jne EscapeKeyCheck
+				        mWrite <"Down key is pressed", 0dh, 0ah>
+ 00000041		     1		.data		
+ 00000041 44 6F 77 6E 20     1		??0003 BYTE "Down key is pressed", 0dh, 0ah,0	
 	   6B 65 79 20 69
 	   73 20 70 72 65
 	   73 73 65 64 0D
 	   0A 00
- 0000002B		     1		.code
- 0000002B  52		     1		push	edx
- 0000002C  BA 00000017 R     1		mov	edx,OFFSET ??0001
- 00000031  E8 00000000 E     1		call	WriteString
- 00000036  5A		     1		pop	edx
- 00000037  EB 0C		    jmp L4
- 00000039			L3: 
-				    mWrite <"Arrow key is not pressed", 0dh, 0ah>
- 0000002D		     1		.data		
- 0000002D 41 72 72 6F 77     1		??0002 BYTE "Arrow key is not pressed", 0dh, 0ah,0	
+ 00000053		     1		.code
+ 00000053  52		     1		push	edx
+ 00000054  BA 00000041 R     1		mov	edx,OFFSET ??0003
+ 00000059  E8 00000000 E     1		call	WriteString
+ 0000005E  5A		     1		pop	edx
+ 0000005F  EB 22		        jmp KeyInputEnd
+ 00000061			    EscapeKeyCheck:
+ 00000061  66| 83 FA 1B		        cmp dx, VK_ESCAPE
+ 00000065  75 0E		        jne OtherKeyPressed
+				        mWrite <"ESCAPE key is pressed", 0dh, 0ah>
+ 00000057		     1		.data		
+ 00000057 45 53 43 41 50     1		??0004 BYTE "ESCAPE key is pressed", 0dh, 0ah,0	
+	   45 20 6B 65 79
+	   20 69 73 20 70
+	   72 65 73 73 65
+	   64 0D 0A 00
+ 00000067		     1		.code
+ 00000067  52		     1		push	edx
+ 00000068  BA 00000057 R     1		mov	edx,OFFSET ??0004
+ 0000006D  E8 00000000 E     1		call	WriteString
+ 00000072  5A		     1		pop	edx
+ 00000073  EB 13		        jmp TempExit
+ 00000075			    OtherKeyPressed: 
+				        mWrite <"Other key is pressed", 0dh, 0ah>
+ 0000006F		     1		.data		
+ 0000006F 4F 74 68 65 72     1		??0005 BYTE "Other key is pressed", 0dh, 0ah,0	
 	   20 6B 65 79 20
-	   69 73 20 6E 6F
-	   74 20 70 72 65
-	   73 73 65 64 0D
-	   0A 00
- 00000039		     1		.code
- 00000039  52		     1		push	edx
- 0000003A  BA 0000002D R     1		mov	edx,OFFSET ??0002
- 0000003F  E8 00000000 E     1		call	WriteString
- 00000044  5A		     1		pop	edx
- 00000045			L4:
+	   69 73 20 70 72
+	   65 73 73 65 64
+	   0D 0A 00
+ 00000075		     1		.code
+ 00000075  52		     1		push	edx
+ 00000076  BA 0000006F R     1		mov	edx,OFFSET ??0005
+ 0000007B  E8 00000000 E     1		call	WriteString
+ 00000080  5A		     1		pop	edx
+ 00000081  EB 00		        jmp KeyInputEnd
+
+ 00000083			KeyInputEnd:
+ 00000083  E9 FFFFFF78		    jmp KeyInput
+
+ 00000088			TempExit:
 				    exit	; exit to operating system
- 00000045  6A 00	   *	    push   +000000000h
- 00000047  E8 00000000 E   *	    call   ExitProcess
- 0000004C			main ENDP
+ 00000088  6A 00	   *	    push   +000000000h
+ 0000008A  E8 00000000 E   *	    call   ExitProcess
+
+ 0000008F			main ENDP
 
 
 				END main
-Microsoft (R) Macro Assembler Version 14.24.28316.0	    03/03/20 19:47:14
+Microsoft (R) Macro Assembler Version 14.24.28316.0	    03/03/20 20:36:14
 %gamedev     (CS271_final_gamedev.asm			     Symbols 2 - 1
 
 
@@ -207,8 +261,8 @@ Segments and Groups:
 
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
-_DATA  . . . . . . . . . . . . .	32 Bit	 00000048 Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 0000004C Para	  Public  'CODE'	
+_DATA  . . . . . . . . . . . . .	32 Bit	 00000086 Para	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 0000008F Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
@@ -315,11 +369,17 @@ WriteStackFrame  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 WriteString  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteToFile  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteWindowsMsg  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 0000004C Public STDCALL
-  L1 . . . . . . . . . . . . . .	L Near	 00000000 _TEXT	
-  L2 . . . . . . . . . . . . . .	L Near	 00000025 _TEXT	
-  L3 . . . . . . . . . . . . . .	L Near	 00000039 _TEXT	
-  L4 . . . . . . . . . . . . . .	L Near	 00000045 _TEXT	
+main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 0000008F Public STDCALL
+  KeyInput . . . . . . . . . . .	L Near	 00000000 _TEXT	
+  KeyInputLoop . . . . . . . . .	L Near	 00000000 _TEXT	
+  LeftKeyCheck . . . . . . . . .	L Near	 00000011 _TEXT	
+  UpKeyCheck . . . . . . . . . .	L Near	 00000025 _TEXT	
+  RightKeyCheck  . . . . . . . .	L Near	 00000039 _TEXT	
+  DownKeyCheck . . . . . . . . .	L Near	 0000004D _TEXT	
+  EscapeKeyCheck . . . . . . . .	L Near	 00000061 _TEXT	
+  OtherKeyPressed  . . . . . . .	L Near	 00000075 _TEXT	
+  KeyInputEnd  . . . . . . . . .	L Near	 00000083 _TEXT	
+  TempExit . . . . . . . . . . .	L Near	 00000088 _TEXT	
 printf . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 scanf  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 wsprintfA  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
@@ -330,8 +390,11 @@ Symbols:
                 N a m e                 Type     Value    Attr
 
 ??0000 . . . . . . . . . . . . .	Byte	 00000000 _DATA	
-??0001 . . . . . . . . . . . . .	Byte	 00000017 _DATA	
-??0002 . . . . . . . . . . . . .	Byte	 0000002D _DATA	
+??0001 . . . . . . . . . . . . .	Byte	 00000016 _DATA	
+??0002 . . . . . . . . . . . . .	Byte	 0000002A _DATA	
+??0003 . . . . . . . . . . . . .	Byte	 00000041 _DATA	
+??0004 . . . . . . . . . . . . .	Byte	 00000057 _DATA	
+??0005 . . . . . . . . . . . . .	Byte	 0000006F _DATA	
 @CodeSize  . . . . . . . . . . .	Number	 00000000h   
 @DataSize  . . . . . . . . . . .	Number	 00000000h   
 @Interface . . . . . . . . . . .	Number	 00000003h   
