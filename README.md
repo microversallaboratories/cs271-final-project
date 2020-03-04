@@ -1,4 +1,6 @@
 # cs271-final-project
+View this in RAW MODE
+
 Author: Hojun Shin
         <Add your name>
 
