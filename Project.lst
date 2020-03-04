@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.24.28316.0	    03/03/20 20:36:14
+Microsoft (R) Macro Assembler Version 14.24.28316.0	    03/03/20 22:28:50
 %gamedev     (CS271_final_gamedev.asm			     Page 1 - 1
 
 
@@ -33,123 +33,173 @@ Microsoft (R) Macro Assembler Version 14.24.28316.0	    03/03/20 20:36:14
 
 
  00000000			.data
+ = 0dh, 0ah			endl EQU <0dh, 0ah>         ; End of Line Sequence
+ 00000000 0A			charX BYTE 10               ; Size of DL: 1 byte
+ 00000001 06			charY BYTE 6               ; Size of DH: 1 byte
+ 00000002 40 00			char BYTE "@", 0            ; Character
+ 00000004 23 23 23 23 23	wall BYTE "################", 0     ; Wall, 16 character long
+	   23 23 23 23 23
+	   23 23 23 23 23
+	   23 00
+ 00000015 23 20 20 20 20	sideWall BYTE "#              #", 0     ; Side Wall
+	   20 20 20 20 20
+	   20 20 20 20 20
+	   23 00
+ 00000026 01			lineNumber BYTE 1
+
+ 00000027 00000000		consoleHandle HANDLE 0
+ 0000002B 00000000		bytesWritten DWORD ?
 
  00000000			.code
  00000000			main PROC
+ 00000000			Setup:
+				    INVOKE GetStdHandle, STD_OUTPUT_HANDLE
+ 00000000  6A F5	   *	    push    -00000000Bh
+ 00000002  E8 00000000 E   *	    call   GetStdHandle
+ 00000007  A3 00000027 R	    mov consoleHandle, EAX
 
- 00000000			KeyInput:
- 00000000			    KeyInputLoop:
- 00000000  B8 0000000A		        mov EAX, 10     ; Delay time
- 00000005  E8 00000000 E	        call Delay      ; Delay
- 0000000A  E8 00000000 E	        call ReadKey    ; Read Key input
- 0000000F  74 EF		        jz KeyInputLoop ; Jump back to KeyInputLoop if there is no key input
- 00000011			    LeftKeyCheck:
- 00000011  66| 83 FA 25		        cmp dx, VK_LEFT
- 00000015  75 0E		        jne UpKeyCheck
-				        mWrite <"Left key is pressed", 0dh, 0ah>
- 00000000		     1		.data		
- 00000000 4C 65 66 74 20     1		??0000 BYTE "Left key is pressed", 0dh, 0ah,0	
-	   6B 65 79 20 69
-	   73 20 70 72 65
-	   73 73 65 64 0D
-	   0A 00
- 00000017		     1		.code
- 00000017  52		     1		push	edx
- 00000018  BA 00000000 R     1		mov	edx,OFFSET ??0000
- 0000001D  E8 00000000 E     1		call	WriteString
- 00000022  5A		     1		pop	edx
- 00000023  EB 5E		        jmp KeyInputEnd
- 00000025			    UpKeyCheck:
- 00000025  66| 83 FA 26		        cmp dx, VK_UP
- 00000029  75 0E		        jne RightKeyCheck
-				        mWrite <"Up key is pressed", 0dh, 0ah>
- 00000016		     1		.data		
- 00000016 55 70 20 6B 65     1		??0001 BYTE "Up key is pressed", 0dh, 0ah,0	
-	   79 20 69 73 20
-	   70 72 65 73 73
-	   65 64 0D 0A 00
- 0000002B		     1		.code
- 0000002B  52		     1		push	edx
- 0000002C  BA 00000016 R     1		mov	edx,OFFSET ??0001
- 00000031  E8 00000000 E     1		call	WriteString
- 00000036  5A		     1		pop	edx
- 00000037  EB 4A		        jmp KeyInputEnd
- 00000039			    RightKeyCheck:
- 00000039  66| 83 FA 27		        cmp dx, VK_Right
- 0000003D  75 0E		        jne DownKeyCheck
-				        mWrite <"Right key is pressed", 0dh, 0ah>
- 0000002A		     1		.data		
- 0000002A 52 69 67 68 74     1		??0002 BYTE "Right key is pressed", 0dh, 0ah,0	
-	   20 6B 65 79 20
-	   69 73 20 70 72
-	   65 73 73 65 64
-	   0D 0A 00
- 0000003F		     1		.code
- 0000003F  52		     1		push	edx
- 00000040  BA 0000002A R     1		mov	edx,OFFSET ??0002
- 00000045  E8 00000000 E     1		call	WriteString
- 0000004A  5A		     1		pop	edx
- 0000004B  EB 36		        jmp KeyInputEnd
- 0000004D			    DownKeyCheck:
- 0000004D  66| 83 FA 28		        cmp dx, VK_DOWN
- 00000051  75 0E		        jne EscapeKeyCheck
-				        mWrite <"Down key is pressed", 0dh, 0ah>
- 00000041		     1		.data		
- 00000041 44 6F 77 6E 20     1		??0003 BYTE "Down key is pressed", 0dh, 0ah,0	
-	   6B 65 79 20 69
-	   73 20 70 72 65
-	   73 73 65 64 0D
-	   0A 00
- 00000053		     1		.code
- 00000053  52		     1		push	edx
- 00000054  BA 00000041 R     1		mov	edx,OFFSET ??0003
- 00000059  E8 00000000 E     1		call	WriteString
- 0000005E  5A		     1		pop	edx
- 0000005F  EB 22		        jmp KeyInputEnd
- 00000061			    EscapeKeyCheck:
- 00000061  66| 83 FA 1B		        cmp dx, VK_ESCAPE
- 00000065  75 0E		        jne OtherKeyPressed
-				        mWrite <"ESCAPE key is pressed", 0dh, 0ah>
- 00000057		     1		.data		
- 00000057 45 53 43 41 50     1		??0004 BYTE "ESCAPE key is pressed", 0dh, 0ah,0	
-	   45 20 6B 65 79
-	   20 69 73 20 70
-	   72 65 73 73 65
-	   64 0D 0A 00
- 00000067		     1		.code
- 00000067  52		     1		push	edx
- 00000068  BA 00000057 R     1		mov	edx,OFFSET ??0004
- 0000006D  E8 00000000 E     1		call	WriteString
- 00000072  5A		     1		pop	edx
- 00000073  EB 13		        jmp TempExit
- 00000075			    OtherKeyPressed: 
-				        mWrite <"Other key is pressed", 0dh, 0ah>
- 0000006F		     1		.data		
- 0000006F 4F 74 68 65 72     1		??0005 BYTE "Other key is pressed", 0dh, 0ah,0	
-	   20 6B 65 79 20
-	   69 73 20 70 72
-	   65 73 73 65 64
-	   0D 0A 00
- 00000075		     1		.code
- 00000075  52		     1		push	edx
- 00000076  BA 0000006F R     1		mov	edx,OFFSET ??0005
- 0000007B  E8 00000000 E     1		call	WriteString
- 00000080  5A		     1		pop	edx
- 00000081  EB 00		        jmp KeyInputEnd
+ 0000000C			GameLoop:
 
- 00000083			KeyInputEnd:
- 00000083  E9 FFFFFF78		    jmp KeyInput
+ 0000000C			DrawBackgroudnd:
+				    ; Don't call Clrscr, as it is slow
+ 0000000C  C6 05 00000026 R	    mov lineNumber, 0               ; reset lineNumber to zero
+	   00
+ 00000013  B2 00		    mov DL, 0
+ 00000015  8A 35 00000026 R	    mov DH, lineNumber
+ 0000001B  E8 00000000 E	    call Gotoxy
+				    
+				    INVOKE WriteConsole,            ; Write Top wall
+				        consoleHandle,
+				        ADDR wall,
+				        16,
+				        ADDR bytesWritten,
+				        0
+ 00000020  6A 00	   *	    push   +000000000h
+ 00000022  68 0000002B R   *	    push   OFFSET bytesWritten
+ 00000027  6A 10	   *	    push   +000000010h
+ 00000029  68 00000004 R   *	    push   OFFSET wall
+ 0000002E  FF 35 00000027 R *	    push   consoleHandle
+ 00000034  E8 00000000 E   *	    call   WriteConsoleA
 
- 00000088			TempExit:
+ 00000039  B9 0000000A		    mov ECX, 10                     ; # of loops
+ 0000003E  FE 05 00000026 R	    inc lineNumber
+
+ 00000044			    SideWallLoop:
+ 00000044  B2 00		        mov DL, 0
+ 00000046  8A 35 00000026 R	        mov DH, lineNumber
+ 0000004C  E8 00000000 E	        call Gotoxy
+ 00000051  51			        push ECX
+
+				        INVOKE WriteConsole,        ; Write side wall
+				            consoleHandle,
+				            ADDR sideWall,
+				            16,
+				            ADDR bytesWritten,
+				            0
+ 00000052  6A 00	   *	    push   +000000000h
+ 00000054  68 0000002B R   *	    push   OFFSET bytesWritten
+ 00000059  6A 10	   *	    push   +000000010h
+ 0000005B  68 00000015 R   *	    push   OFFSET sideWall
+ 00000060  FF 35 00000027 R *	    push   consoleHandle
+ 00000066  E8 00000000 E   *	    call   WriteConsoleA
+
+ 0000006B  59			        pop ECX
+ 0000006C  FE 05 00000026 R	        inc lineNumber
+ 00000072  E2 D0		        loop SideWallLoop
+
+ 00000074  B2 00		    mov DL, 0
+ 00000076  8A 35 00000026 R	    mov DH, lineNumber
+ 0000007C  E8 00000000 E	    call Gotoxy
+				    
+				    INVOKE WriteConsole,             ; Write Bottom wall
+				        consoleHandle,
+				        ADDR wall,
+				        16,
+				        ADDR bytesWritten,
+				        0
+ 00000081  6A 00	   *	    push   +000000000h
+ 00000083  68 0000002B R   *	    push   OFFSET bytesWritten
+ 00000088  6A 10	   *	    push   +000000010h
+ 0000008A  68 00000004 R   *	    push   OFFSET wall
+ 0000008F  FF 35 00000027 R *	    push   consoleHandle
+ 00000095  E8 00000000 E   *	    call   WriteConsoleA
+
+ 0000009A			DrawCharacter:
+ 0000009A  8A 15 00000000 R	    mov DL, charX           ; X-Coordinate
+ 000000A0  8A 35 00000001 R	    mov DH, charY           ; Y-Coordinate
+ 000000A6  E8 00000000 E	    call Gotoxy             ; locate Cursor
+				    
+				    INVOKE WriteConsole,    ; Write character '@'
+				        consoleHandle,
+				        ADDR char,
+				        1,
+				        ADDR bytesWritten,
+				        0
+ 000000AB  6A 00	   *	    push   +000000000h
+ 000000AD  68 0000002B R   *	    push   OFFSET bytesWritten
+ 000000B2  6A 01	   *	    push   +000000001h
+ 000000B4  68 00000002 R   *	    push   OFFSET char
+ 000000B9  FF 35 00000027 R *	    push   consoleHandle
+ 000000BF  E8 00000000 E   *	    call   WriteConsoleA
+				    
+
+ 000000C4			KeyInput:
+ 000000C4			    KeyInputLoop:
+ 000000C4  B8 0000000A		        mov EAX, 10         ; Delay time
+ 000000C9  E8 00000000 E	        call Delay          ; Delay
+ 000000CE  E8 00000000 E	        call ReadKey        ; Read Key input
+ 000000D3  74 EF		        jz KeyInputLoop     ; Jump back to KeyInputLoop if there is no key input
+ 000000D5			    LeftKeyCheck:
+ 000000D5  66| 83 FA 25		        cmp dx, VK_LEFT
+ 000000D9  75 09		        jne UpKeyCheck
+				        ; mWrite <"Left key is pressed", endl>
+ 000000DB  80 2D 00000000 R	        sub charX, 1
+	   01
+ 000000E2  EB 37		        jmp KeyInputEnd
+ 000000E4			    UpKeyCheck:
+ 000000E4  66| 83 FA 26		        cmp dx, VK_UP
+ 000000E8  75 09		        jne RightKeyCheck
+				        ; mWrite <"Up key is pressed", endl>
+ 000000EA  80 2D 00000001 R	        sub charY, 1
+	   01
+ 000000F1  EB 28		        jmp KeyInputEnd
+ 000000F3			    RightKeyCheck:
+ 000000F3  66| 83 FA 27		        cmp dx, VK_Right
+ 000000F7  75 09		        jne DownKeyCheck
+				        ; mWrite <"Right key is pressed", endl>
+ 000000F9  80 05 00000000 R	        add charX, 1
+	   01
+ 00000100  EB 19		        jmp KeyInputEnd
+ 00000102			    DownKeyCheck:
+ 00000102  66| 83 FA 28		        cmp dx, VK_DOWN
+ 00000106  75 09		        jne EscapeKeyCheck
+				        ; mWrite <"Down key is pressed", endl>
+ 00000108  80 05 00000001 R	        add charY, 1
+	   01
+ 0000010F  EB 0A		        jmp KeyInputEnd
+ 00000111			    EscapeKeyCheck:
+ 00000111  66| 83 FA 1B		        cmp dx, VK_ESCAPE
+ 00000115  75 02		        jne OtherKeyPressed
+				        ; mWrite <"ESCAPE key is pressed", endl>
+ 00000117  EB 0C		        jmp TempExit
+ 00000119			    OtherKeyPressed: 
+				        ; mWrite <"Other key is pressed", endl>
+ 00000119  EB 00		        jmp KeyInputEnd
+
+ 0000011B			KeyInputEnd:
+				    INVOKE ReadKeyFlush
+ 0000011B  E8 00000000 E   *	    call   ReadKeyFlush
+ 00000120  E9 FFFFFEE7		    jmp GameLoop
+
+ 00000125			TempExit:
 				    exit	; exit to operating system
- 00000088  6A 00	   *	    push   +000000000h
- 0000008A  E8 00000000 E   *	    call   ExitProcess
+ 00000125  6A 00	   *	    push   +000000000h
+ 00000127  E8 00000000 E   *	    call   ExitProcess
 
- 0000008F			main ENDP
-
-
+ 0000012C			main ENDP
+				    
 				END main
-Microsoft (R) Macro Assembler Version 14.24.28316.0	    03/03/20 20:36:14
+Microsoft (R) Macro Assembler Version 14.24.28316.0	    03/03/20 22:28:50
 %gamedev     (CS271_final_gamedev.asm			     Symbols 2 - 1
 
 
@@ -261,8 +311,8 @@ Segments and Groups:
 
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
-_DATA  . . . . . . . . . . . . .	32 Bit	 00000086 Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 0000008F Para	  Public  'CODE'	
+_DATA  . . . . . . . . . . . . .	32 Bit	 0000002F Para	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 0000012C Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
@@ -369,17 +419,22 @@ WriteStackFrame  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 WriteString  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteToFile  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteWindowsMsg  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 0000008F Public STDCALL
-  KeyInput . . . . . . . . . . .	L Near	 00000000 _TEXT	
-  KeyInputLoop . . . . . . . . .	L Near	 00000000 _TEXT	
-  LeftKeyCheck . . . . . . . . .	L Near	 00000011 _TEXT	
-  UpKeyCheck . . . . . . . . . .	L Near	 00000025 _TEXT	
-  RightKeyCheck  . . . . . . . .	L Near	 00000039 _TEXT	
-  DownKeyCheck . . . . . . . . .	L Near	 0000004D _TEXT	
-  EscapeKeyCheck . . . . . . . .	L Near	 00000061 _TEXT	
-  OtherKeyPressed  . . . . . . .	L Near	 00000075 _TEXT	
-  KeyInputEnd  . . . . . . . . .	L Near	 00000083 _TEXT	
-  TempExit . . . . . . . . . . .	L Near	 00000088 _TEXT	
+main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 0000012C Public STDCALL
+  Setup  . . . . . . . . . . . .	L Near	 00000000 _TEXT	
+  GameLoop . . . . . . . . . . .	L Near	 0000000C _TEXT	
+  DrawBackgroudnd  . . . . . . .	L Near	 0000000C _TEXT	
+  SideWallLoop . . . . . . . . .	L Near	 00000044 _TEXT	
+  DrawCharacter  . . . . . . . .	L Near	 0000009A _TEXT	
+  KeyInput . . . . . . . . . . .	L Near	 000000C4 _TEXT	
+  KeyInputLoop . . . . . . . . .	L Near	 000000C4 _TEXT	
+  LeftKeyCheck . . . . . . . . .	L Near	 000000D5 _TEXT	
+  UpKeyCheck . . . . . . . . . .	L Near	 000000E4 _TEXT	
+  RightKeyCheck  . . . . . . . .	L Near	 000000F3 _TEXT	
+  DownKeyCheck . . . . . . . . .	L Near	 00000102 _TEXT	
+  EscapeKeyCheck . . . . . . . .	L Near	 00000111 _TEXT	
+  OtherKeyPressed  . . . . . . .	L Near	 00000119 _TEXT	
+  KeyInputEnd  . . . . . . . . .	L Near	 0000011B _TEXT	
+  TempExit . . . . . . . . . . .	L Near	 00000125 _TEXT	
 printf . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 scanf  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 wsprintfA  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
@@ -389,12 +444,6 @@ Symbols:
 
                 N a m e                 Type     Value    Attr
 
-??0000 . . . . . . . . . . . . .	Byte	 00000000 _DATA	
-??0001 . . . . . . . . . . . . .	Byte	 00000016 _DATA	
-??0002 . . . . . . . . . . . . .	Byte	 0000002A _DATA	
-??0003 . . . . . . . . . . . . .	Byte	 00000041 _DATA	
-??0004 . . . . . . . . . . . . .	Byte	 00000057 _DATA	
-??0005 . . . . . . . . . . . . .	Byte	 0000006F _DATA	
 @CodeSize  . . . . . . . . . . .	Number	 00000000h   
 @DataSize  . . . . . . . . . . .	Number	 00000000h   
 @Interface . . . . . . . . . . .	Number	 00000003h   
@@ -607,7 +656,13 @@ WriteConsole . . . . . . . . . .	Text   	 WriteConsoleA
 black  . . . . . . . . . . . . .	Number	 00000000h   
 blue . . . . . . . . . . . . . .	Number	 00000001h   
 brown  . . . . . . . . . . . . .	Number	 00000006h   
+bytesWritten . . . . . . . . . .	DWord	 0000002B _DATA	
+charX  . . . . . . . . . . . . .	Byte	 00000000 _DATA	
+charY  . . . . . . . . . . . . .	Byte	 00000001 _DATA	
+char . . . . . . . . . . . . . .	Byte	 00000002 _DATA	
+consoleHandle  . . . . . . . . .	DWord	 00000027 _DATA	
 cyan . . . . . . . . . . . . . .	Number	 00000003h   
+endl . . . . . . . . . . . . . .	Text   	 0dh, 0ah
 exit . . . . . . . . . . . . . .	Text   	 INVOKE ExitProcess,0
 gray . . . . . . . . . . . . . .	Number	 00000008h   
 green  . . . . . . . . . . . . .	Number	 00000002h   
@@ -617,8 +672,11 @@ lightGray  . . . . . . . . . . .	Number	 00000007h
 lightGreen . . . . . . . . . . .	Number	 0000000Ah   
 lightMagenta . . . . . . . . . .	Number	 0000000Dh   
 lightRed . . . . . . . . . . . .	Number	 0000000Ch   
+lineNumber . . . . . . . . . . .	Byte	 00000026 _DATA	
 magenta  . . . . . . . . . . . .	Number	 00000005h   
 red  . . . . . . . . . . . . . .	Number	 00000004h   
+sideWall . . . . . . . . . . . .	Byte	 00000015 _DATA	
+wall . . . . . . . . . . . . . .	Byte	 00000004 _DATA	
 white  . . . . . . . . . . . . .	Number	 0000000Fh   
 wsprintf . . . . . . . . . . . .	Text   	 wsprintfA
 yellow . . . . . . . . . . . . .	Number	 0000000Eh   
