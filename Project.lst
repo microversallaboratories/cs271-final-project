@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.24.28316.0	    03/03/20 23:27:57
+Microsoft (R) Macro Assembler Version 14.24.28316.0	    03/04/20 23:30:33
 %gamedev     (CS271_final_gamedev.asm			     Page 1 - 1
 
 
@@ -31,9 +31,12 @@ Microsoft (R) Macro Assembler Version 14.24.28316.0	    03/03/20 23:27:57
 			      C .LIST
 			      C 
 
+ = 00001388			BUFFER_SIZE = 5000
+				; MIN_X EQU 0                                       ; WIP
+				; MAX_X EQU 32                                      ; WIP
 
  00000000			.data
- = 0dh, 0ah			endl        EQU <0dh, 0ah>                                 ; End of Line Sequence
+ = 0dh, 0ah			endl        EQU <0dh, 0ah>                          ; End of Line Sequence
  00000000 40 27 73 20 41	gameTitle   BYTE "@'s Adventure", 0
 	   64 76 65 6E 74
 	   75 72 65 00
@@ -42,21 +45,22 @@ Microsoft (R) Macro Assembler Version 14.24.28316.0	    03/03/20 23:27:57
  00000016 00000064		consoleCursor CONSOLE_CURSOR_INFO <100, 0>          ; Set second Argument to 1 if want to see visible cursor
 	   00000000
 
- 0000001E 0A			charX       BYTE 10                                 ; Size of DL: 1 byte
- 0000001F 06			charY       BYTE 6                                  ; Size of DH: 1 byte
- 00000020 40 00			char        BYTE "@", 0                             ; Character
- 00000022 23 23 23 23 23	wall        BYTE "################", 0              ; Wall, 16 character long
-	   23 23 23 23 23
-	   23 23 23 23 23
-	   23 00
- 00000033 23 2E 2E 2E 2E	sideWall    BYTE "#..............#", 0              ; Side Wall
-	   2E 2E 2E 2E 2E
-	   2E 2E 2E 2E 2E
-	   23 00
- 00000044 01			lineNumber  BYTE 1
+ 0000001E  00001388 [		fileBuffer  BYTE BUFFER_SIZE DUP (?)
+	    00
+	   ]
+ 000013A6 00000014		fileX       DWORD 20
+ 000013AA 0000000A		fileY       DWORD 10
+ 000013AE 6D 61 70 31 2E	fileName    BYTE "map1.txt", 0
+	   74 78 74 00
+ 000013B7 00000000		fileHandle  HANDLE ?
 
- 00000045 00000000		consoleHandle HANDLE 0
- 00000049 00000000		bytesWritten DWORD ?
+ 000013BB 0A			charX       BYTE 10                                 ; Size of DL: 1 byte
+ 000013BC 06			charY       BYTE 6                                  ; Size of DH: 1 byte
+ 000013BD 40 00			char        BYTE "@", 0                             ; Character
+ 000013BF 23 00			sharp       BYTE "#", 0                             ; Sharp
+
+ 000013C1 00000000		consoleHandle HANDLE 0
+ 000013C5 00000000		bytesWritten DWORD ?
 
  00000000			.code
  00000000			main PROC
@@ -67,7 +71,7 @@ Microsoft (R) Macro Assembler Version 14.24.28316.0	    03/03/20 23:27:57
 				    INVOKE GetStdHandle, STD_OUTPUT_HANDLE
  0000000A  6A F5	   *	    push    -00000000Bh
  0000000C  E8 00000000 E   *	    call   GetStdHandle
- 00000011  A3 00000045 R	    mov consoleHandle, EAX
+ 00000011  A3 000013C1 R	    mov consoleHandle, EAX
 
 				    INVOKE SetConsoleWindowInfo, 
 				        consoleHandle,
@@ -75,86 +79,120 @@ Microsoft (R) Macro Assembler Version 14.24.28316.0	    03/03/20 23:27:57
 				        ADDR consoleSize
  00000016  68 0000000E R   *	    push   OFFSET consoleSize
  0000001B  6A 01	   *	    push   +000000001h
- 0000001D  FF 35 00000045 R *	    push   consoleHandle
+ 0000001D  FF 35 000013C1 R *	    push   consoleHandle
  00000023  E8 00000000 E   *	    call   SetConsoleWindowInfo
 
 				    INVOKE SetConsoleCursorInfo,
 				        consoleHandle,
 				        ADDR consoleCursor
  00000028  68 00000016 R   *	    push   OFFSET consoleCursor
- 0000002D  FF 35 00000045 R *	    push   consoleHandle
+ 0000002D  FF 35 000013C1 R *	    push   consoleHandle
  00000033  E8 00000000 E   *	    call   SetConsoleCursorInfo
 
- 00000038			GameLoop:
+ 00000038			    FileIO:
+ 00000038  BA 000013AE R	        mov EDX, OFFSET fileName
+ 0000003D  E8 00000000 E	        call OpenInputFile
+ 00000042  A3 000013B7 R	        mov fileHandle, EAX
 
- 00000038			DrawBackgroudnd:
-				    ; Don't call Clrscr, as it is slow
- 00000038  C6 05 00000044 R	    mov lineNumber, 0               ; reset lineNumber to zero
+ 00000047  83 F8 FF		        cmp EAX, INVALID_HANDLE_VALUE
+ 0000004A  75 11		        jne fileOpened
+				        mWrite <"Cannot Open File", 0dh, 0ah>
+ 000013C9		     1		.data		
+ 000013C9 43 61 6E 6E 6F     1		??0000 BYTE "Cannot Open File", 0dh, 0ah,0	
+	   74 20 4F 70 65
+	   6E 20 46 69 6C
+	   65 0D 0A 00
+ 0000004C		     1		.code
+ 0000004C  52		     1		push	edx
+ 0000004D  BA 000013C9 R     1		mov	edx,OFFSET ??0000
+ 00000052  E8 00000000 E     1		call	WriteString
+ 00000057  5A		     1		pop	edx
+ 00000058  E9 000000FC		        jmp TempExit
+
+ 0000005D			    fileOpened:
+ 0000005D  BA 0000001E R	        mov EDX, OFFSET fileBuffer
+ 00000062  B9 00001388		        mov ECX, BUFFER_SIZE
+ 00000067  E8 00000000 E	        call ReadFromFile
+ 0000006C  73 0E		        jnc checkBufferSize
+				        mWrite <"Error reading File. ", 0dh, 0ah>
+ 000013DC		     1		.data		
+ 000013DC 45 72 72 6F 72     1		??0001 BYTE "Error reading File. ", 0dh, 0ah,0	
+	   20 72 65 61 64
+	   69 6E 67 20 46
+	   69 6C 65 2E 20
+	   0D 0A 00
+ 0000006E		     1		.code
+ 0000006E  52		     1		push	edx
+ 0000006F  BA 000013DC R     1		mov	edx,OFFSET ??0001
+ 00000074  E8 00000000 E     1		call	WriteString
+ 00000079  5A		     1		pop	edx
+ 0000007A  EB 35		        jmp fileClose
+
+ 0000007C			    checkBufferSize:
+ 0000007C  3D 00001388		        cmp EAX, BUFFER_SIZE
+ 00000081  72 11		        jb bufferSizeOK
+				        mWrite <"ERROR: buffer too small for the file", 0dh, 0ah>
+ 000013F3		     1		.data		
+ 000013F3 45 52 52 4F 52     1		??0002 BYTE "ERROR: buffer too small for the file", 0dh, 0ah,0	
+	   3A 20 62 75 66
+	   66 65 72 20 74
+	   6F 6F 20 73 6D
+	   61 6C 6C 20 66
+	   6F 72 20 74 68
+	   65 20 66 69 6C
+	   65 0D 0A 00
+ 00000083		     1		.code
+ 00000083  52		     1		push	edx
+ 00000084  BA 000013F3 R     1		mov	edx,OFFSET ??0002
+ 00000089  E8 00000000 E     1		call	WriteString
+ 0000008E  5A		     1		pop	edx
+ 0000008F  E9 000000C5		        jmp TempExit
+
+ 00000094			    bufferSizeOK:
+ 00000094  C6 80 0000001E R	        mov fileBuffer[EAX], 0
 	   00
- 0000003F  B2 00		    mov DL, 0
- 00000041  8A 35 00000044 R	    mov DH, lineNumber
- 00000047  E8 00000000 E	    call Gotoxy
+				        mWrite "File size: "
+ 0000141A		     1		.data		
+ 0000141A 46 69 6C 65 20     1		??0003 BYTE "File size: ",0	
+	   73 69 7A 65 3A
+	   20 00
+ 0000009B		     1		.code
+ 0000009B  52		     1		push	edx
+ 0000009C  BA 0000141A R     1		mov	edx,OFFSET ??0003
+ 000000A1  E8 00000000 E     1		call	WriteString
+ 000000A6  5A		     1		pop	edx
+ 000000A7  E8 00000000 E	        call WriteDec
+ 000000AC  E8 00000000 E	        call Crlf
+
+ 000000B1			    fileClose:
+ 000000B1  A1 000013B7 R	        mov EAX, fileHandle
+ 000000B6  E8 00000000 E	        call CloseFile
 				    
-				    INVOKE WriteConsole,            ; Write Top wall
-				        consoleHandle,
-				        ADDR wall,
-				        16,
-				        ADDR bytesWritten,
-				        0
- 0000004C  6A 00	   *	    push   +000000000h
- 0000004E  68 00000049 R   *	    push   OFFSET bytesWritten
- 00000053  6A 10	   *	    push   +000000010h
- 00000055  68 00000022 R   *	    push   OFFSET wall
- 0000005A  FF 35 00000045 R *	    push   consoleHandle
- 00000060  E8 00000000 E   *	    call   WriteConsoleA
 
- 00000065  B9 0000000A		    mov ECX, 10                     ; # of loops
- 0000006A  FE 05 00000044 R	    inc lineNumber
+ 000000BB			GameLoop:
 
- 00000070			    SideWallLoop:
- 00000070  B2 00		        mov DL, 0
- 00000072  8A 35 00000044 R	        mov DH, lineNumber
- 00000078  E8 00000000 E	        call Gotoxy
- 0000007D  51			        push ECX
+ 000000BB			DrawBackground:
+				    ; Don't call Clrscr, as it is slow
+ 000000BB  B2 00		    mov DL, 0
+ 000000BD  B6 00		    mov DH, 0
+ 000000BF  E8 00000000 E	    call Gotoxy
 
-				        INVOKE WriteConsole,        ; Write side wall
-				            consoleHandle,
-				            ADDR sideWall,
-				            16,
-				            ADDR bytesWritten,
-				            0
- 0000007E  6A 00	   *	    push   +000000000h
- 00000080  68 00000049 R   *	    push   OFFSET bytesWritten
- 00000085  6A 10	   *	    push   +000000010h
- 00000087  68 00000033 R   *	    push   OFFSET sideWall
- 0000008C  FF 35 00000045 R *	    push   consoleHandle
- 00000092  E8 00000000 E   *	    call   WriteConsoleA
+ 000000C4  BA 0000001E R	    mov EDX, OFFSET fileBuffer
+ 000000C9  E8 00000000 E	    call WriteString
 
- 00000097  59			        pop ECX
- 00000098  FE 05 00000044 R	        inc lineNumber
- 0000009E  E2 D0		        loop SideWallLoop
+				    ;INVOKE WriteConsole,            ; Write Top wall
+				        ;consoleHandle,
+				        ;ADDR fileBuffer,
+				        ;16,
+				        ;ADDR bytesWritten,
+				        ;0
 
- 000000A0  B2 00		    mov DL, 0
- 000000A2  8A 35 00000044 R	    mov DH, lineNumber
- 000000A8  E8 00000000 E	    call Gotoxy
 				    
-				    INVOKE WriteConsole,             ; Write Bottom wall
-				        consoleHandle,
-				        ADDR wall,
-				        16,
-				        ADDR bytesWritten,
-				        0
- 000000AD  6A 00	   *	    push   +000000000h
- 000000AF  68 00000049 R   *	    push   OFFSET bytesWritten
- 000000B4  6A 10	   *	    push   +000000010h
- 000000B6  68 00000022 R   *	    push   OFFSET wall
- 000000BB  FF 35 00000045 R *	    push   consoleHandle
- 000000C1  E8 00000000 E   *	    call   WriteConsoleA
 
- 000000C6			DrawCharacter:
- 000000C6  8A 15 0000001E R	    mov DL, charX           ; X-Coordinate
- 000000CC  8A 35 0000001F R	    mov DH, charY           ; Y-Coordinate
- 000000D2  E8 00000000 E	    call Gotoxy             ; locate Cursor
+ 000000CE			DrawCharacter:
+ 000000CE  8A 15 000013BB R	    mov DL, charX           ; X-Coordinate
+ 000000D4  8A 35 000013BC R	    mov DH, charY           ; Y-Coordinate
+ 000000DA  E8 00000000 E	    call Gotoxy             ; locate Cursor
 				    
 				    INVOKE WriteConsole,    ; Write character '@'
 				        consoleHandle,
@@ -162,70 +200,104 @@ Microsoft (R) Macro Assembler Version 14.24.28316.0	    03/03/20 23:27:57
 				        1,
 				        ADDR bytesWritten,
 				        0
- 000000D7  6A 00	   *	    push   +000000000h
- 000000D9  68 00000049 R   *	    push   OFFSET bytesWritten
- 000000DE  6A 01	   *	    push   +000000001h
- 000000E0  68 00000020 R   *	    push   OFFSET char
- 000000E5  FF 35 00000045 R *	    push   consoleHandle
- 000000EB  E8 00000000 E   *	    call   WriteConsoleA
+ 000000DF  6A 00	   *	    push   +000000000h
+ 000000E1  68 000013C5 R   *	    push   OFFSET bytesWritten
+ 000000E6  6A 01	   *	    push   +000000001h
+ 000000E8  68 000013BD R   *	    push   OFFSET char
+ 000000ED  FF 35 000013C1 R *	    push   consoleHandle
+ 000000F3  E8 00000000 E   *	    call   WriteConsoleA
 
- 000000F0			KeyInput:
- 000000F0			    KeyInputLoop:
- 000000F0  B8 0000000A		        mov EAX, 10         ; Delay time
- 000000F5  E8 00000000 E	        call Delay          ; Delay
- 000000FA  E8 00000000 E	        call ReadKey        ; Read Key input
- 000000FF  74 EF		        jz KeyInputLoop     ; Jump back to KeyInputLoop if there is no key input
- 00000101			    LeftKeyCheck:
- 00000101  66| 83 FA 25		        cmp dx, VK_LEFT
- 00000105  75 09		        jne UpKeyCheck
+ 000000F8			KeyInput:
+ 000000F8			    KeyInputLoop:
+ 000000F8  B8 0000000A		        mov EAX, 10         ; Delay time
+ 000000FD  E8 00000000 E	        call Delay          ; Delay
+ 00000102  E8 00000000 E	        call ReadKey        ; Read Key input
+ 00000107  74 EF		        jz KeyInputLoop     ; Jump back to KeyInputLoop if there is no key input
+ 00000109			    LeftKeyCheck:
+ 00000109  66| 83 FA 25		        cmp dx, VK_LEFT
+ 0000010D  75 09		        jne UpKeyCheck
 				        ; mWrite <"Left key is pressed", endl>
- 00000107  80 2D 0000001E R	        sub charX, 1
+ 0000010F  80 2D 000013BB R	        sub charX, 1
 	   01
- 0000010E  EB 37		        jmp KeyInputEnd
- 00000110			    UpKeyCheck:
- 00000110  66| 83 FA 26		        cmp dx, VK_UP
- 00000114  75 09		        jne RightKeyCheck
+
+				        ;push OFFSET fileBuffer
+				        ;call checkWall
+
+ 00000116  EB 37		        jmp KeyInputEnd
+ 00000118			    UpKeyCheck:
+ 00000118  66| 83 FA 26		        cmp dx, VK_UP
+ 0000011C  75 09		        jne RightKeyCheck
 				        ; mWrite <"Up key is pressed", endl>
- 00000116  80 2D 0000001F R	        sub charY, 1
+ 0000011E  80 2D 000013BC R	        sub charY, 1
 	   01
- 0000011D  EB 28		        jmp KeyInputEnd
- 0000011F			    RightKeyCheck:
- 0000011F  66| 83 FA 27		        cmp dx, VK_Right
- 00000123  75 09		        jne DownKeyCheck
+ 00000125  EB 28		        jmp KeyInputEnd
+ 00000127			    RightKeyCheck:
+ 00000127  66| 83 FA 27		        cmp dx, VK_Right
+ 0000012B  75 09		        jne DownKeyCheck
 				        ; mWrite <"Right key is pressed", endl>
- 00000125  80 05 0000001E R	        add charX, 1
+ 0000012D  80 05 000013BB R	        add charX, 1
 	   01
- 0000012C  EB 19		        jmp KeyInputEnd
- 0000012E			    DownKeyCheck:
- 0000012E  66| 83 FA 28		        cmp dx, VK_DOWN
- 00000132  75 09		        jne EscapeKeyCheck
+ 00000134  EB 19		        jmp KeyInputEnd
+ 00000136			    DownKeyCheck:
+ 00000136  66| 83 FA 28		        cmp dx, VK_DOWN
+ 0000013A  75 09		        jne EscapeKeyCheck
 				        ; mWrite <"Down key is pressed", endl>
- 00000134  80 05 0000001F R	        add charY, 1
+ 0000013C  80 05 000013BC R	        add charY, 1
 	   01
- 0000013B  EB 0A		        jmp KeyInputEnd
- 0000013D			    EscapeKeyCheck:
- 0000013D  66| 83 FA 1B		        cmp dx, VK_ESCAPE
- 00000141  75 02		        jne OtherKeyPressed
+ 00000143  EB 0A		        jmp KeyInputEnd
+ 00000145			    EscapeKeyCheck:
+ 00000145  66| 83 FA 1B		        cmp dx, VK_ESCAPE
+ 00000149  75 02		        jne OtherKeyPressed
 				        ; mWrite <"ESCAPE key is pressed", endl>
- 00000143  EB 0C		        jmp TempExit
- 00000145			    OtherKeyPressed: 
+ 0000014B  EB 0C		        jmp TempExit
+ 0000014D			    OtherKeyPressed: 
 				        ; mWrite <"Other key is pressed", endl>
- 00000145  EB 00		        jmp KeyInputEnd
+ 0000014D  EB 00		        jmp KeyInputEnd
 
- 00000147			KeyInputEnd:
+ 0000014F			KeyInputEnd:
 				    INVOKE ReadKeyFlush
- 00000147  E8 00000000 E   *	    call   ReadKeyFlush
- 0000014C  E9 FFFFFEE7		    jmp GameLoop
+ 0000014F  E8 00000000 E   *	    call   ReadKeyFlush
+ 00000154  E9 FFFFFF62		    jmp GameLoop
 
- 00000151			TempExit:
+ 00000159			TempExit:
 				    exit	; exit to operating system
- 00000151  6A 00	   *	    push   +000000000h
- 00000153  E8 00000000 E   *	    call   ExitProcess
+ 00000159  6A 00	   *	    push   +000000000h
+ 0000015B  E8 00000000 E   *	    call   ExitProcess
 
- 00000158			main ENDP
+ 00000160			main ENDP
 				    
+ 00000160			checkWall PROC
+ 00000160  FD			    std
+ 00000161  8B EC		    mov EBP, ESP
+ 00000163  8B 75 04		    mov ESI, [EBP+4]
+ 00000166  BF 000013BF R	    mov EDI, OFFSET sharp
+ 0000016B  AC			    lodsb
+ 0000016C  AE			    scasb
+ 0000016D  75 0C		    jne notSharp
+				    mWrite <"This is sharp", 0dh, 0ah>
+ 00001426		     1		.data		
+ 00001426 54 68 69 73 20     1		??0004 BYTE "This is sharp", 0dh, 0ah,0	
+	   69 73 20 73 68
+	   61 72 70 0D 0A
+	   00
+ 0000016F		     1		.code
+ 0000016F  52		     1		push	edx
+ 00000170  BA 00001426 R     1		mov	edx,OFFSET ??0004
+ 00000175  E8 00000000 E     1		call	WriteString
+ 0000017A  5A		     1		pop	edx
+
+ 0000017B			notSharp:
+ 0000017B  C3			    ret
+
+ 0000017C  FD			    std
+ 0000017D  8B EC		    mov EBP, ESP
+ 0000017F  03 75 04		    add ESI, [EBP+4]
+
+
+ 00000182			checkWall ENDP
+
 				END main
-Microsoft (R) Macro Assembler Version 14.24.28316.0	    03/03/20 23:27:57
+Microsoft (R) Macro Assembler Version 14.24.28316.0	    03/04/20 23:30:33
 %gamedev     (CS271_final_gamedev.asm			     Symbols 2 - 1
 
 
@@ -337,8 +409,8 @@ Segments and Groups:
 
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
-_DATA  . . . . . . . . . . . . .	32 Bit	 0000004D Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 00000158 Para	  Public  'CODE'	
+_DATA  . . . . . . . . . . . . .	32 Bit	 00001436 Para	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 00000182 Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
@@ -445,22 +517,28 @@ WriteStackFrame  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 WriteString  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteToFile  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteWindowsMsg  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000158 Public STDCALL
+checkWall  . . . . . . . . . . .	P Near	 00000160 _TEXT	Length= 00000022 Public STDCALL
+  notSharp . . . . . . . . . . .	L Near	 0000017B _TEXT	
+main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000160 Public STDCALL
   Setup  . . . . . . . . . . . .	L Near	 00000000 _TEXT	
-  GameLoop . . . . . . . . . . .	L Near	 00000038 _TEXT	
-  DrawBackgroudnd  . . . . . . .	L Near	 00000038 _TEXT	
-  SideWallLoop . . . . . . . . .	L Near	 00000070 _TEXT	
-  DrawCharacter  . . . . . . . .	L Near	 000000C6 _TEXT	
-  KeyInput . . . . . . . . . . .	L Near	 000000F0 _TEXT	
-  KeyInputLoop . . . . . . . . .	L Near	 000000F0 _TEXT	
-  LeftKeyCheck . . . . . . . . .	L Near	 00000101 _TEXT	
-  UpKeyCheck . . . . . . . . . .	L Near	 00000110 _TEXT	
-  RightKeyCheck  . . . . . . . .	L Near	 0000011F _TEXT	
-  DownKeyCheck . . . . . . . . .	L Near	 0000012E _TEXT	
-  EscapeKeyCheck . . . . . . . .	L Near	 0000013D _TEXT	
-  OtherKeyPressed  . . . . . . .	L Near	 00000145 _TEXT	
-  KeyInputEnd  . . . . . . . . .	L Near	 00000147 _TEXT	
-  TempExit . . . . . . . . . . .	L Near	 00000151 _TEXT	
+  FileIO . . . . . . . . . . . .	L Near	 00000038 _TEXT	
+  fileOpened . . . . . . . . . .	L Near	 0000005D _TEXT	
+  checkBufferSize  . . . . . . .	L Near	 0000007C _TEXT	
+  bufferSizeOK . . . . . . . . .	L Near	 00000094 _TEXT	
+  fileClose  . . . . . . . . . .	L Near	 000000B1 _TEXT	
+  GameLoop . . . . . . . . . . .	L Near	 000000BB _TEXT	
+  DrawBackground . . . . . . . .	L Near	 000000BB _TEXT	
+  DrawCharacter  . . . . . . . .	L Near	 000000CE _TEXT	
+  KeyInput . . . . . . . . . . .	L Near	 000000F8 _TEXT	
+  KeyInputLoop . . . . . . . . .	L Near	 000000F8 _TEXT	
+  LeftKeyCheck . . . . . . . . .	L Near	 00000109 _TEXT	
+  UpKeyCheck . . . . . . . . . .	L Near	 00000118 _TEXT	
+  RightKeyCheck  . . . . . . . .	L Near	 00000127 _TEXT	
+  DownKeyCheck . . . . . . . . .	L Near	 00000136 _TEXT	
+  EscapeKeyCheck . . . . . . . .	L Near	 00000145 _TEXT	
+  OtherKeyPressed  . . . . . . .	L Near	 0000014D _TEXT	
+  KeyInputEnd  . . . . . . . . .	L Near	 0000014F _TEXT	
+  TempExit . . . . . . . . . . .	L Near	 00000159 _TEXT	
 printf . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 scanf  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 wsprintfA  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
@@ -470,6 +548,11 @@ Symbols:
 
                 N a m e                 Type     Value    Attr
 
+??0000 . . . . . . . . . . . . .	Byte	 000013C9 _DATA	
+??0001 . . . . . . . . . . . . .	Byte	 000013DC _DATA	
+??0002 . . . . . . . . . . . . .	Byte	 000013F3 _DATA	
+??0003 . . . . . . . . . . . . .	Byte	 0000141A _DATA	
+??0004 . . . . . . . . . . . . .	Byte	 00001426 _DATA	
 @CodeSize  . . . . . . . . . . .	Number	 00000000h   
 @DataSize  . . . . . . . . . . .	Number	 00000000h   
 @Interface . . . . . . . . . . .	Number	 00000003h   
@@ -480,6 +563,7 @@ Symbols:
 @fardata . . . . . . . . . . . .	Text   	 FLAT
 @stack . . . . . . . . . . . . .	Text   	 FLAT
 ALT_MASK . . . . . . . . . . . .	Number	 00000003h   
+BUFFER_SIZE  . . . . . . . . . .	Number	 00001388h   
 CAPSLOCK_ON  . . . . . . . . . .	Number	 00000080h   
 CREATE_ALWAYS  . . . . . . . . .	Number	 00000002h   
 CREATE_NEW . . . . . . . . . . .	Number	 00000001h   
@@ -682,16 +766,21 @@ WriteConsole . . . . . . . . . .	Text   	 WriteConsoleA
 black  . . . . . . . . . . . . .	Number	 00000000h   
 blue . . . . . . . . . . . . . .	Number	 00000001h   
 brown  . . . . . . . . . . . . .	Number	 00000006h   
-bytesWritten . . . . . . . . . .	DWord	 00000049 _DATA	
-charX  . . . . . . . . . . . . .	Byte	 0000001E _DATA	
-charY  . . . . . . . . . . . . .	Byte	 0000001F _DATA	
-char . . . . . . . . . . . . . .	Byte	 00000020 _DATA	
+bytesWritten . . . . . . . . . .	DWord	 000013C5 _DATA	
+charX  . . . . . . . . . . . . .	Byte	 000013BB _DATA	
+charY  . . . . . . . . . . . . .	Byte	 000013BC _DATA	
+char . . . . . . . . . . . . . .	Byte	 000013BD _DATA	
 consoleCursor  . . . . . . . . .	CONSOLE_CURSOR_INFO  00000016 _DATA	
-consoleHandle  . . . . . . . . .	DWord	 00000045 _DATA	
+consoleHandle  . . . . . . . . .	DWord	 000013C1 _DATA	
 consoleSize  . . . . . . . . . .	SMALL_RECT  0000000E _DATA	
 cyan . . . . . . . . . . . . . .	Number	 00000003h   
 endl . . . . . . . . . . . . . .	Text   	 0dh, 0ah
 exit . . . . . . . . . . . . . .	Text   	 INVOKE ExitProcess,0
+fileBuffer . . . . . . . . . . .	Byte	 0000001E _DATA	
+fileHandle . . . . . . . . . . .	DWord	 000013B7 _DATA	
+fileName . . . . . . . . . . . .	Byte	 000013AE _DATA	
+fileX  . . . . . . . . . . . . .	DWord	 000013A6 _DATA	
+fileY  . . . . . . . . . . . . .	DWord	 000013AA _DATA	
 gameTitle  . . . . . . . . . . .	Byte	 00000000 _DATA	
 gray . . . . . . . . . . . . . .	Number	 00000008h   
 green  . . . . . . . . . . . . .	Number	 00000002h   
@@ -701,11 +790,9 @@ lightGray  . . . . . . . . . . .	Number	 00000007h
 lightGreen . . . . . . . . . . .	Number	 0000000Ah   
 lightMagenta . . . . . . . . . .	Number	 0000000Dh   
 lightRed . . . . . . . . . . . .	Number	 0000000Ch   
-lineNumber . . . . . . . . . . .	Byte	 00000044 _DATA	
 magenta  . . . . . . . . . . . .	Number	 00000005h   
 red  . . . . . . . . . . . . . .	Number	 00000004h   
-sideWall . . . . . . . . . . . .	Byte	 00000033 _DATA	
-wall . . . . . . . . . . . . . .	Byte	 00000022 _DATA	
+sharp  . . . . . . . . . . . . .	Byte	 000013BF _DATA	
 white  . . . . . . . . . . . . .	Number	 0000000Fh   
 wsprintf . . . . . . . . . . . .	Text   	 wsprintfA
 yellow . . . . . . . . . . . . .	Number	 0000000Eh   
