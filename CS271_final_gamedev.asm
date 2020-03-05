@@ -23,10 +23,11 @@ fileY       DWORD 10
 fileName    BYTE "map1.txt", 0
 fileHandle  HANDLE ?
 
-charX       BYTE 10                                 ; Size of DL: 1 byte
-charY       BYTE 6                                  ; Size of DH: 1 byte
-char        BYTE "@", 0                             ; Character
-sharp       BYTE "#", 0                             ; Sharp
+charX       BYTE    10                                 ; Size of DL: 1 byte - starting xpos
+charY       BYTE    6                                  ; Size of DH: 1 byte - starting ypos
+char        BYTE    "@", 0                             ; Character
+sharp       BYTE    "#", 0                             ; Sharp
+inventory   BYTE    10 DUP(?)                          ; Inventory; arr of chars
 
 consoleHandle HANDLE 0
 bytesWritten DWORD ?
@@ -105,17 +106,20 @@ DrawCharacter:
         ADDR bytesWritten,
         0
 
+DrawInventory:
+    ; implement for-loop to loop through inventory items and print each one
+
 KeyInput:
     KeyInputLoop:
         mov EAX, 10         ; Delay time
         call Delay          ; Delay
         call ReadKey        ; Read Key input
         jz KeyInputLoop     ; Jump back to KeyInputLoop if there is no key input
-    LeftKeyCheck:
+    LeftKeyCheck:           
         cmp dx, VK_LEFT
         jne UpKeyCheck
         ; mWrite <"Left key is pressed", endl>
-        sub charX, 1
+        sub charX, 1        ; Move character one space to the left
 
         ;push OFFSET fileBuffer
         ;call checkWall
@@ -125,35 +129,41 @@ KeyInput:
         cmp dx, VK_UP
         jne RightKeyCheck
         ; mWrite <"Up key is pressed", endl>
-        sub charY, 1
+        sub charY, 1        ; Move character one space up
         jmp KeyInputEnd
     RightKeyCheck:
         cmp dx, VK_Right
         jne DownKeyCheck
         ; mWrite <"Right key is pressed", endl>
-        add charX, 1
+        add charX, 1        ; Move character one space to the right
         jmp KeyInputEnd
     DownKeyCheck:
         cmp dx, VK_DOWN
         jne EscapeKeyCheck
         ; mWrite <"Down key is pressed", endl>
-        add charY, 1
+        add charY, 1        ; Move character one space down
         jmp KeyInputEnd
     EscapeKeyCheck:
         cmp dx, VK_ESCAPE
         jne OtherKeyPressed
         ; mWrite <"ESCAPE key is pressed", endl>
-        jmp TempExit
+        jmp TempExit        ; Exit game
     OtherKeyPressed: 
         ; mWrite <"Other key is pressed", endl>
-        jmp KeyInputEnd
+        jmp KeyInputEnd     ; "Ignore" invalid input
 
-KeyInputEnd:
-    INVOKE ReadKeyFlush
-    jmp GameLoop
+KeyInputEnd:                ; Move has been made
+    INVOKE ReadKeyFlush     ; Clear the current key
+                            ; Check for an object on the ground, add it if there
+                            ; IF the key is in the user's inventory, 
+                            ; Check if they are next to a door
+                            ; If next to a door,
+                            ; Unlock the door
+                            ; Place the character in the next room
+    jmp GameLoop            ; Repeat the game loop
 
 TempExit:
-    exit	; exit to operating system
+    exit	                ; exit to operating system
 
 main ENDP
     
