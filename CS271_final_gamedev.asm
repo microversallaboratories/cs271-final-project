@@ -16,12 +16,13 @@ gameTitle   BYTE "@'s Adventure", 0
 consoleSize SMALL_RECT <0, 0, 40, 20>
 consoleCursor CONSOLE_CURSOR_INFO <100, 0>          ; Set second Argument to 1 if want to see visible cursor
 
-charX       BYTE 10                                 ; Size of DL: 1 byte - starting xpos
-charY       BYTE 6                                  ; Size of DH: 1 byte - starting ypos
-char        BYTE "@", 0                             ; Character
-wall        BYTE "################", 0              ; Wall, 16 character long
-sideWall    BYTE "#..............#", 0              ; Side Wall
-lineNumber  BYTE 1
+charX       BYTE    10                                 ; Size of DL: 1 byte - starting xpos
+charY       BYTE    6                                  ; Size of DH: 1 byte - starting ypos
+char        BYTE    "@", 0                             ; Character
+wall        BYTE    "################", 0              ; Wall, 16 character long
+sideWall    BYTE    "#..............#", 0              ; Side Wall
+lineNumber  BYTE    1
+inventory   BYTE    10 DUP(?)                          ; Inventory; arr of chars
 
 consoleHandle HANDLE 0
 bytesWritten DWORD ?
@@ -44,7 +45,7 @@ Setup:
 
 GameLoop:
 
-DrawBackgroudnd:
+DrawBackground:
     ; Don't call Clrscr, as it is slow
     mov lineNumber, 0               ; reset lineNumber to zero
     mov DL, 0
@@ -100,6 +101,9 @@ DrawCharacter:
         1,
         ADDR bytesWritten,
         0
+
+DrawInventory:
+    ; implement for-loop to loop through inventory items and print each one
 
 KeyInput:
     KeyInputLoop:

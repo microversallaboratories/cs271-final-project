@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.24.28316.0	    03/05/20 07:03:41
+Microsoft (R) Macro Assembler Version 14.24.28316.0	    03/05/20 08:12:44
 %gamedev     (CS271_final_gamedev.asm			     Page 1 - 1
 
 
@@ -44,21 +44,22 @@ Microsoft (R) Macro Assembler Version 14.24.28316.0	    03/05/20 07:03:41
  00000016 00000064		consoleCursor CONSOLE_CURSOR_INFO <100, 0>          ; Set second Argument to 1 if want to see visible cursor
 	   00000000
 
- 0000001E 0A			charX       BYTE 10                                 ; Size of DL: 1 byte
- 0000001F 06			charY       BYTE 6                                  ; Size of DH: 1 byte
- 00000020 40 00			char        BYTE "@", 0                             ; Character
- 00000022 23 23 23 23 23	wall        BYTE "################", 0              ; Wall, 16 character long
+ 0000001E 0A			charX       BYTE    10                                 ; Size of DL: 1 byte - starting xpos
+ 0000001F 06			charY       BYTE    6                                  ; Size of DH: 1 byte - starting ypos
+ 00000020 40 00			char        BYTE    "@", 0                             ; Character
+ 00000022 23 23 23 23 23	wall        BYTE    "################", 0              ; Wall, 16 character long
 	   23 23 23 23 23
 	   23 23 23 23 23
 	   23 00
- 00000033 23 2E 2E 2E 2E	sideWall    BYTE "#..............#", 0              ; Side Wall
+ 00000033 23 2E 2E 2E 2E	sideWall    BYTE    "#..............#", 0              ; Side Wall
 	   2E 2E 2E 2E 2E
 	   2E 2E 2E 2E 2E
 	   23 00
- 00000044 01			lineNumber  BYTE 1
+ 00000044 01			lineNumber  BYTE    1
+ 00000045			inventory   BYTE    10 DUP(?)                           ; Inventory; arr of chars
 
- 00000045 00000000		consoleHandle HANDLE 0
- 00000049 00000000		bytesWritten DWORD ?
+ 0000004F 00000000		consoleHandle HANDLE 0
+ 00000053 00000000		bytesWritten DWORD ?
 
  00000000			.code
  00000000			main PROC
@@ -69,7 +70,7 @@ Microsoft (R) Macro Assembler Version 14.24.28316.0	    03/05/20 07:03:41
 				    INVOKE GetStdHandle, STD_OUTPUT_HANDLE
  0000000A  6A F5	   *	    push    -00000000Bh
  0000000C  E8 00000000 E   *	    call   GetStdHandle
- 00000011  A3 00000045 R	    mov consoleHandle, EAX
+ 00000011  A3 0000004F R	    mov consoleHandle, EAX
 
 				    INVOKE SetConsoleWindowInfo, 
 				        consoleHandle,
@@ -77,19 +78,19 @@ Microsoft (R) Macro Assembler Version 14.24.28316.0	    03/05/20 07:03:41
 				        ADDR consoleSize
  00000016  68 0000000E R   *	    push   OFFSET consoleSize
  0000001B  6A 01	   *	    push   +000000001h
- 0000001D  FF 35 00000045 R *	    push   consoleHandle
+ 0000001D  FF 35 0000004F R *	    push   consoleHandle
  00000023  E8 00000000 E   *	    call   SetConsoleWindowInfo
 
 				    INVOKE SetConsoleCursorInfo,
 				        consoleHandle,
 				        ADDR consoleCursor
  00000028  68 00000016 R   *	    push   OFFSET consoleCursor
- 0000002D  FF 35 00000045 R *	    push   consoleHandle
+ 0000002D  FF 35 0000004F R *	    push   consoleHandle
  00000033  E8 00000000 E   *	    call   SetConsoleCursorInfo
 
  00000038			GameLoop:
 
- 00000038			DrawBackgroudnd:
+ 00000038			DrawBackground:
 				    ; Don't call Clrscr, as it is slow
  00000038  C6 05 00000044 R	    mov lineNumber, 0               ; reset lineNumber to zero
 	   00
@@ -104,10 +105,10 @@ Microsoft (R) Macro Assembler Version 14.24.28316.0	    03/05/20 07:03:41
 				        ADDR bytesWritten,
 				        0
  0000004C  6A 00	   *	    push   +000000000h
- 0000004E  68 00000049 R   *	    push   OFFSET bytesWritten
+ 0000004E  68 00000053 R   *	    push   OFFSET bytesWritten
  00000053  6A 10	   *	    push   +000000010h
  00000055  68 00000022 R   *	    push   OFFSET wall
- 0000005A  FF 35 00000045 R *	    push   consoleHandle
+ 0000005A  FF 35 0000004F R *	    push   consoleHandle
  00000060  E8 00000000 E   *	    call   WriteConsoleA
 
  00000065  B9 0000000A		    mov ECX, 10                     ; # of loops
@@ -126,10 +127,10 @@ Microsoft (R) Macro Assembler Version 14.24.28316.0	    03/05/20 07:03:41
 				            ADDR bytesWritten,
 				            0
  0000007E  6A 00	   *	    push   +000000000h
- 00000080  68 00000049 R   *	    push   OFFSET bytesWritten
+ 00000080  68 00000053 R   *	    push   OFFSET bytesWritten
  00000085  6A 10	   *	    push   +000000010h
  00000087  68 00000033 R   *	    push   OFFSET sideWall
- 0000008C  FF 35 00000045 R *	    push   consoleHandle
+ 0000008C  FF 35 0000004F R *	    push   consoleHandle
  00000092  E8 00000000 E   *	    call   WriteConsoleA
 
  00000097  59			        pop ECX
@@ -147,10 +148,10 @@ Microsoft (R) Macro Assembler Version 14.24.28316.0	    03/05/20 07:03:41
 				        ADDR bytesWritten,
 				        0
  000000AD  6A 00	   *	    push   +000000000h
- 000000AF  68 00000049 R   *	    push   OFFSET bytesWritten
+ 000000AF  68 00000053 R   *	    push   OFFSET bytesWritten
  000000B4  6A 10	   *	    push   +000000010h
  000000B6  68 00000022 R   *	    push   OFFSET wall
- 000000BB  FF 35 00000045 R *	    push   consoleHandle
+ 000000BB  FF 35 0000004F R *	    push   consoleHandle
  000000C1  E8 00000000 E   *	    call   WriteConsoleA
 
  000000C6			DrawCharacter:
@@ -165,11 +166,14 @@ Microsoft (R) Macro Assembler Version 14.24.28316.0	    03/05/20 07:03:41
 				        ADDR bytesWritten,
 				        0
  000000D7  6A 00	   *	    push   +000000000h
- 000000D9  68 00000049 R   *	    push   OFFSET bytesWritten
+ 000000D9  68 00000053 R   *	    push   OFFSET bytesWritten
  000000DE  6A 01	   *	    push   +000000001h
  000000E0  68 00000020 R   *	    push   OFFSET char
- 000000E5  FF 35 00000045 R *	    push   consoleHandle
+ 000000E5  FF 35 0000004F R *	    push   consoleHandle
  000000EB  E8 00000000 E   *	    call   WriteConsoleA
+
+ 000000F0			DrawInventory:
+				    ; implement for-loop to loop through inventory items and print each one
 
  000000F0			KeyInput:
  000000F0			    KeyInputLoop:
@@ -177,57 +181,63 @@ Microsoft (R) Macro Assembler Version 14.24.28316.0	    03/05/20 07:03:41
  000000F5  E8 00000000 E	        call Delay          ; Delay
  000000FA  E8 00000000 E	        call ReadKey        ; Read Key input
  000000FF  74 EF		        jz KeyInputLoop     ; Jump back to KeyInputLoop if there is no key input
- 00000101			    LeftKeyCheck:
+ 00000101			    LeftKeyCheck:           
  00000101  66| 83 FA 25		        cmp dx, VK_LEFT
  00000105  75 09		        jne UpKeyCheck
 				        ; mWrite <"Left key is pressed", endl>
- 00000107  80 2D 0000001E R	        sub charX, 1
+ 00000107  80 2D 0000001E R	        sub charX, 1        ; Move character one space to the left
 	   01
  0000010E  EB 37		        jmp KeyInputEnd
  00000110			    UpKeyCheck:
  00000110  66| 83 FA 26		        cmp dx, VK_UP
  00000114  75 09		        jne RightKeyCheck
 				        ; mWrite <"Up key is pressed", endl>
- 00000116  80 2D 0000001F R	        sub charY, 1
+ 00000116  80 2D 0000001F R	        sub charY, 1        ; Move character one space up
 	   01
  0000011D  EB 28		        jmp KeyInputEnd
  0000011F			    RightKeyCheck:
  0000011F  66| 83 FA 27		        cmp dx, VK_Right
  00000123  75 09		        jne DownKeyCheck
 				        ; mWrite <"Right key is pressed", endl>
- 00000125  80 05 0000001E R	        add charX, 1
+ 00000125  80 05 0000001E R	        add charX, 1        ; Move character one space to the right
 	   01
  0000012C  EB 19		        jmp KeyInputEnd
  0000012E			    DownKeyCheck:
  0000012E  66| 83 FA 28		        cmp dx, VK_DOWN
  00000132  75 09		        jne EscapeKeyCheck
 				        ; mWrite <"Down key is pressed", endl>
- 00000134  80 05 0000001F R	        add charY, 1
+ 00000134  80 05 0000001F R	        add charY, 1        ; Move character one space down
 	   01
  0000013B  EB 0A		        jmp KeyInputEnd
  0000013D			    EscapeKeyCheck:
  0000013D  66| 83 FA 1B		        cmp dx, VK_ESCAPE
  00000141  75 02		        jne OtherKeyPressed
 				        ; mWrite <"ESCAPE key is pressed", endl>
- 00000143  EB 0C		        jmp TempExit
+ 00000143  EB 0C		        jmp TempExit        ; Exit game
  00000145			    OtherKeyPressed: 
 				        ; mWrite <"Other key is pressed", endl>
- 00000145  EB 00		        jmp KeyInputEnd
+ 00000145  EB 00		        jmp KeyInputEnd     ; "Ignore" invalid input
 
- 00000147			KeyInputEnd:
-				    INVOKE ReadKeyFlush
+ 00000147			KeyInputEnd:                ; Move has been made
+				    INVOKE ReadKeyFlush     ; Clear the current key
  00000147  E8 00000000 E   *	    call   ReadKeyFlush
- 0000014C  E9 FFFFFEE7		    jmp GameLoop
+				                            ; Check for an object on the ground, add it if there
+				                            ; IF the key is in the user's inventory, 
+				                            ; Check if they are next to a door
+				                            ; If next to a door,
+				                            ; Unlock the door
+				                            ; Place the character in the next room
+ 0000014C  E9 FFFFFEE7		    jmp GameLoop            ; Repeat the game loop
 
  00000151			TempExit:
-				    exit	; exit to operating system
+				    exit	                ; exit to operating system
  00000151  6A 00	   *	    push   +000000000h
  00000153  E8 00000000 E   *	    call   ExitProcess
 
  00000158			main ENDP
 				    
 				END main
-Microsoft (R) Macro Assembler Version 14.24.28316.0	    03/05/20 07:03:41
+Microsoft (R) Macro Assembler Version 14.24.28316.0	    03/05/20 08:12:44
 %gamedev     (CS271_final_gamedev.asm			     Symbols 2 - 1
 
 
@@ -339,7 +349,7 @@ Segments and Groups:
 
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
-_DATA  . . . . . . . . . . . . .	32 Bit	 0000004D Para	  Public  'DATA'	
+_DATA  . . . . . . . . . . . . .	32 Bit	 00000057 Para	  Public  'DATA'	
 _TEXT  . . . . . . . . . . . . .	32 Bit	 00000158 Para	  Public  'CODE'	
 
 
@@ -450,9 +460,10 @@ WriteWindowsMsg  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000158 Public STDCALL
   Setup  . . . . . . . . . . . .	L Near	 00000000 _TEXT	
   GameLoop . . . . . . . . . . .	L Near	 00000038 _TEXT	
-  DrawBackgroudnd  . . . . . . .	L Near	 00000038 _TEXT	
+  DrawBackground . . . . . . . .	L Near	 00000038 _TEXT	
   SideWallLoop . . . . . . . . .	L Near	 00000070 _TEXT	
   DrawCharacter  . . . . . . . .	L Near	 000000C6 _TEXT	
+  DrawInventory  . . . . . . . .	L Near	 000000F0 _TEXT	
   KeyInput . . . . . . . . . . .	L Near	 000000F0 _TEXT	
   KeyInputLoop . . . . . . . . .	L Near	 000000F0 _TEXT	
   LeftKeyCheck . . . . . . . . .	L Near	 00000101 _TEXT	
@@ -684,12 +695,12 @@ WriteConsole . . . . . . . . . .	Text   	 WriteConsoleA
 black  . . . . . . . . . . . . .	Number	 00000000h   
 blue . . . . . . . . . . . . . .	Number	 00000001h   
 brown  . . . . . . . . . . . . .	Number	 00000006h   
-bytesWritten . . . . . . . . . .	DWord	 00000049 _DATA	
+bytesWritten . . . . . . . . . .	DWord	 00000053 _DATA	
 charX  . . . . . . . . . . . . .	Byte	 0000001E _DATA	
 charY  . . . . . . . . . . . . .	Byte	 0000001F _DATA	
 char . . . . . . . . . . . . . .	Byte	 00000020 _DATA	
 consoleCursor  . . . . . . . . .	CONSOLE_CURSOR_INFO  00000016 _DATA	
-consoleHandle  . . . . . . . . .	DWord	 00000045 _DATA	
+consoleHandle  . . . . . . . . .	DWord	 0000004F _DATA	
 consoleSize  . . . . . . . . . .	SMALL_RECT  0000000E _DATA	
 cyan . . . . . . . . . . . . . .	Number	 00000003h   
 endl . . . . . . . . . . . . . .	Text   	 0dh, 0ah
@@ -697,6 +708,7 @@ exit . . . . . . . . . . . . . .	Text   	 INVOKE ExitProcess,0
 gameTitle  . . . . . . . . . . .	Byte	 00000000 _DATA	
 gray . . . . . . . . . . . . . .	Number	 00000008h   
 green  . . . . . . . . . . . . .	Number	 00000002h   
+inventory  . . . . . . . . . . .	Byte	 00000045 _DATA	
 lightBlue  . . . . . . . . . . .	Number	 00000009h   
 lightCyan  . . . . . . . . . . .	Number	 0000000Bh   
 lightGray  . . . . . . . . . . .	Number	 00000007h   
