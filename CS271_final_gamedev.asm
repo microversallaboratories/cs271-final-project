@@ -20,7 +20,7 @@ consoleCursor CONSOLE_CURSOR_INFO <100, 0>          ; Set second Argument to 1 i
 fileBuffer  BYTE BUFFER_SIZE DUP (?)
 fileX       DWORD 20
 fileY       DWORD 10
-fileName    BYTE "map1.txt", 0
+fileName    BYTE "map2.txt", 0
 fileHandle  HANDLE ?
 
 charX       BYTE    10                                 ; Size of DL: 1 byte - starting xpos
@@ -28,6 +28,7 @@ charY       BYTE    6                                  ; Size of DH: 1 byte - st
 char        BYTE    "@", 0                             ; Character
 sharp       BYTE    "#", 0                             ; Sharp
 inventory   BYTE    10 DUP(?)                          ; Inventory; arr of chars
+
 
 consoleHandle HANDLE 0
 bytesWritten DWORD ?
@@ -37,16 +38,16 @@ bytesWritten DWORD ?
 DrawInventory   PROC
     ; implement for-loop to loop through inventory items and print each one
     push    ebp
-    mov ebp,    esp
+    mov ebp,    esp         ; preserve ebp
     mov esi,    [ebp+6]     ; address of inventory in esi; size of each element in the inventory * 3
     mov ecx,    [ebp+4]     ; count in ecx
     
     forloop:
-        mov eax,    esi
-        call    WriteDec
-        call    Crlf
-        add     esi,    2
-        loop    forloop
+        mov eax,    esi     ; move the current element into the eax register
+        call    WriteDec    ; write it out to the terminal
+        call    Crlf        ; newline
+        add     esi,    2   ; increment the instruction pointer
+        loop    forloop     ; loop
     pop ebp
     ret 4
 DrawInventory   ENDP
@@ -169,7 +170,7 @@ KeyInput:
 
 KeyInputEnd:                ; Move has been made
     INVOKE ReadKeyFlush     ; Clear the current key
-    call    DrawInventory   ; Draw the inventory
+    ; call    DrawInventory   ; Draw the inventory
                             ; Check for an object on the ground, add it if there
                             ; IF the key is in the user's inventory, 
                             ; Check if they are next to a door
