@@ -57,7 +57,7 @@ Setup:
         cmp     EAX, INVALID_HANDLE_VALUE
         jne     fileOpened
         mWrite  <"Cannot Open File", 0dh, 0ah>
-        jmp     TempExit
+        jmp     GameExit
 
     fileOpened:
         mov     EDX, OFFSET fileBuffer
@@ -71,7 +71,7 @@ Setup:
         cmp     EAX, BUFFER_SIZE
         jb      bufferSizeOK
         mWrite  <"ERROR: buffer too small for the file", 0dh, 0ah>
-        jmp     TempExit
+        jmp     GameExit
 
     bufferSizeOK:
         mov     fileBuffer[EAX], 0
@@ -98,77 +98,86 @@ DrawBackground:
 DrawCharacter:
     mov     DL, charX           ; X-Coordinate
     mov     DH, charY           ; Y-Coordinate
-    call    Gotoxy             ; locate Cursor
+    call    Gotoxy              ; locate Cursor
     
-    INVOKE WriteConsole,    ; Write character '@'
+    INVOKE WriteConsole,        ; Write character '@'
         consoleHandle,
         ADDR char,
         1,
         ADDR bytesWritten,
         0
 
-KeyInput:
+    call    KeyInput            ; Read key and change coordinate
+                                ; Return 0 in EAX if Exiting, 1 in EAX if Continuing
+    cmp     EAX, 0
+    je      GameExit            ; Jump to GameExit if EAX = 0
+    jmp     GameLoop            ; Jump to GameLoop if EAX = 1
+
+GameExit:
+    exit	                      ; exit to operating system
+
+main    ENDP
+
+;-------------------------------------------------------------------------------------
+KeyInput    PROC
+;
+;   Read Key Input and move character's coordination.
+;       Return 1 to EAX if continuing, 0 if Exiting Game
+;   Receive:    None
+;   Return:     EAX
+;-------------------------------------------------------------------------------------
     KeyInputLoop:
         mov     EAX, 10         ; Delay time
         call    Delay           ; Delay
         call    ReadKey         ; Read Key input
         jz      KeyInputLoop    ; Jump back to KeyInputLoop if there is no key input
+
     LeftKeyCheck:           
-        cmp     dx, VK_LEFT
+        cmp     dx, VK_LEFT     ; Check if Left Arrow key is pressed
         jne     UpKeyCheck
-        ; mWrite <"Left key is pressed", endl>
         sub     charX, 1        ; Move character one space to the left
 
         ;push OFFSET fileBuffer
         ;call checkWall
 
         jmp     KeyInputEnd
+
     UpKeyCheck:
-        cmp     dx, VK_UP
+        cmp     dx, VK_UP       ; Check if Up Arrow key is pressed
         jne     RightKeyCheck
-        ; mWrite <"Up key is pressed", endl>
         sub     charY, 1        ; Move character one space up
         jmp     KeyInputEnd
+
     RightKeyCheck:
-        cmp     dx, VK_Right
+        cmp     dx, VK_RIGHT    ; Check if Right Arrow key is pressed
         jne     DownKeyCheck
-        ; mWrite <"Right key is pressed", endl>
         add     charX, 1        ; Move character one space to the right
         jmp     KeyInputEnd
+
     DownKeyCheck:
-        cmp     dx, VK_DOWN
+        cmp     dx, VK_DOWN     ; Check if Down Arrow key is pressed
         jne     EscapeKeyCheck
-        ; mWrite <"Down key is pressed", endl>
         add     charY, 1        ; Move character one space down
         jmp     KeyInputEnd
+
     EscapeKeyCheck:
         cmp     dx, VK_ESCAPE
         jne     OtherKeyPressed
-        ; mWrite <"ESCAPE key is pressed", endl>
-        jmp     TempExit        ; Exit game
+        mov     EAX, 0          ; Set EAX to 0, signifying Exit
+                                ; Does not Flush, since the game will Exit
+        jmp     EndInput
+
     OtherKeyPressed: 
-        ; mWrite <"Other key is pressed", endl>
-        jmp     KeyInputEnd     ; "Ignore" invalid input
+        jmp     KeyInputEnd     ; Ignore invalid input
 
-KeyInputEnd:                    ; Move has been made
-    INVOKE ReadKeyFlush         ; Clear the current key
+    KeyInputEnd:                ; Move has been made
+        INVOKE  ReadKeyFlush    ; Clear the current key
+                                ; Set EAX to 1, signifying Continue
 
-    ;call    DrawInventory      ; Draw the inventory
-                                ; Check for an object on the ground, add it if there
-                                ; IF the key is in the user's inventory, 
-                                ; Check if they are next to a door
-                                ; If next to a door,
-                                ; Unlock the door
-                                ; Place the character in the next room
-    jmp GameLoop                ; Repeat the game loop
-
-TempExit:
-    exit	                      ; exit to operating system
-
-main    ENDP
-
-keyInput    PROC
-keyInput    ENDP
+    EndInput:
+        ret
+KeyInput    ENDP
+;-------------------------------------------------------------------------------------
     
 checkWall PROC      ; WIP
     ;mov EDI, OFFSET sharp
