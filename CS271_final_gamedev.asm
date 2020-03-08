@@ -1,6 +1,6 @@
 TITLE gamedev     (CS271_final_gamedev.asm)
 
-; Author:
+; Author: 
 ; Course / Project ID                 Date:
 ; Description:
 
@@ -33,6 +33,24 @@ consoleHandle HANDLE 0
 bytesWritten DWORD ?
 
 .code
+
+DrawInventory   PROC
+    ; implement for-loop to loop through inventory items and print each one
+    push    ebp
+    mov ebp,    esp
+    mov esi,    [ebp+6]     ; address of inventory in esi; size of each element in the inventory * 3
+    mov ecx,    [ebp+4]     ; count in ecx
+    
+    forloop:
+        mov eax,    esi
+        call    WriteDec
+        call    Crlf
+        add     esi,    2
+        loop    forloop
+    pop ebp
+    ret 4
+DrawInventory   ENDP
+
 main PROC
 Setup:
     INVOKE SetConsoleTitle, ADDR gameTitle
@@ -106,9 +124,6 @@ DrawCharacter:
         ADDR bytesWritten,
         0
 
-DrawInventory:
-    ; implement for-loop to loop through inventory items and print each one
-
 KeyInput:
     KeyInputLoop:
         mov EAX, 10         ; Delay time
@@ -154,6 +169,7 @@ KeyInput:
 
 KeyInputEnd:                ; Move has been made
     INVOKE ReadKeyFlush     ; Clear the current key
+    call    DrawInventory   ; Draw the inventory
                             ; Check for an object on the ground, add it if there
                             ; IF the key is in the user's inventory, 
                             ; Check if they are next to a door
