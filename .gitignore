@@ -1,0 +1,8 @@
+*.lastbuildstate
+*.tlog
+Debug/Project.exe
+Debug/Project.ilk
+Debug/Project.log
+Debug/Project.pdb
+.vs/Project/v16/Browse.VC.db
+.vs/Project/v16/.suo
