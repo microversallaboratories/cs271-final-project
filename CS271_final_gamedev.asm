@@ -16,18 +16,18 @@ gameTitle   BYTE "@'s Adventure", 0
 consoleSize     SMALL_RECT <0, 0, 40, 20>
 consoleCursor   CONSOLE_CURSOR_INFO <100, 0>        ; Set second Argument to 1 if want to see visible cursor
 
-fileBuffer  BYTE MAP_QTY DUP(BUFFER_SIZE DUP (?))
-fileX       DWORD 20
-fileY       DWORD 10
-curMap      BYTE BUFFER_SIZE DUP (?)
-curMapNum   DWORD 0
-fileName    DWORD "A", 0
+fileBuffer  BYTE MAP_QTY DUP(BUFFER_SIZE DUP (?))   ; Where the arrays of map file is stored
+curMap      BYTE BUFFER_SIZE DUP (?)                ; Current Map array is stored
+curMapNum   DWORD 0                                 ; Current Map #
+fileName    DWORD "A", 0                            ; File names, start from A~....Z
 fileHandle  HANDLE ?
 
-charX       BYTE    10                              ; Size of DL: 1 byte - starting xpos
-charY       BYTE    6                               ; Size of DH: 1 byte - starting ypos
+charX       BYTE    1                               ; Size of DL: 1 byte - starting xpos
+charY       BYTE    1                               ; Size of DH: 1 byte - starting ypos
 char        BYTE    "@", 0                          ; Character
-sharp       BYTE    "#", 0                          ; Sharp
+endla       BYTE    10                              ; endline character 0a
+endld       BYTE    13                              ; endline character 0d
+sharp       BYTE    "#"                             ; sharp character
 inventory   BYTE    10 DUP(?)                       ; Inventory; arr of chars
 spaces      DWORD   "  ",0                          ; double space for inventory formatting
 
@@ -89,11 +89,13 @@ DrawCharacter:
         0
 
 DrawInv:
-    push    OFFSET inventory    ; push inventory offset into stack
-    push    LENGTHOF inventory  ; push count into stack
-    call    DrawInventory       ; Draw the inventory
+    ;push    OFFSET inventory    ; push inventory offset into stack
+    ;push    LENGTHOF inventory  ; push count into stack
+    ;call    DrawInventory       ; Draw the inventory
 
 Key:
+    push    OFFSET curMap       ; Put @curMap to stack as reference
+    push    BUFFER_SIZE         ; Put BUFFER_SIZE to stack as value
     call    KeyInput            ; Read key and change coordinate
                                 ; Return 0 in EAX if Exiting, 1 in EAX if Continuing
     cmp     EAX, 0
@@ -259,27 +261,43 @@ KeyInput    PROC
         jne     UpKeyCheck
         sub     charX, 1        ; Move character one space to the left
 
-        ;push OFFSET curMap
-        ;call checkWall
-
+        call    checkWall
+        cmp     EAX, 1
+        jne     KeyInputEnd
+        add     charX, 1
         jmp     KeyInputEnd
 
     UpKeyCheck:
         cmp     dx, VK_UP       ; Check if Up Arrow key is pressed
         jne     RightKeyCheck
         sub     charY, 1        ; Move character one space up
+
+        call    checkWall
+        cmp     EAX, 1
+        jne     KeyInputEnd
+        add     charY, 1
         jmp     KeyInputEnd
 
     RightKeyCheck:
         cmp     dx, VK_RIGHT    ; Check if Right Arrow key is pressed
         jne     DownKeyCheck
         add     charX, 1        ; Move character one space to the right
+
+        call    checkWall
+        cmp     EAX, 1
+        jne     KeyInputEnd
+        sub     charX, 1
         jmp     KeyInputEnd
 
     DownKeyCheck:
         cmp     dx, VK_DOWN     ; Check if Down Arrow key is pressed
         jne     EscapeKeyCheck
         add     charY, 1        ; Move character one space down
+
+        call    checkWall
+        cmp     EAX, 1
+        jne     KeyInputEnd
+        sub     charY, 1
         jmp     KeyInputEnd
 
     EscapeKeyCheck:
@@ -297,7 +315,7 @@ KeyInput    PROC
                                 ; Set EAX to 1, signifying Continue
 
     EndInput:
-        ret
+        ret     8
 KeyInput    ENDP
 ;-------------------------------------------------------------------------------------
 
@@ -306,19 +324,67 @@ KeyInput    ENDP
 checkWall PROC      
 ;
 ;   Check if there is wall at the player's coordinate
-;       Return 1 to EAX if there is no wall, 0 if exist
-;   Receive:    curMap, charX, charY
+;       Return 0 to EAX if there is no wall, 1 if exist
+;   Receive:    curMap, BUFFER_SIZE, charX, charY
 ;   Return:     EAX
 ;-------------------------------------------------------------------------------------
-    ;mov EDI, OFFSET sharp
-    ;lodsb
-    ;scasb
-
-    std
-    mov EBP, ESP
-    add ESI, [EBP+4]
+    push    EBP
+    mov     EBP, ESP
+    pushad
+    mov     EDI, [EBP+16]       ; @curMap
 
 
+    mov     EAX, 0              ; Reset EAX to 0
+    mov     AL, charY           ; Move charY to AL
+    mov     ECX, EAX            ; Move EAX to ECX : charY -> ECX
+    cmp     ECX, 0              ; If ECX == 0, skips whole part
+    je      L15
+    mov     AL, 10              ; ASCII code for end of line 0a
+
+L1:
+    push    ECX                 ; Save ECX
+    mov     ECX, [EBP+12]       ; Buffer Size of ECX
+    cld
+    repne   scasb               ; Repeat until finding AL
+    pop     ECX                 ; Load ECX
+    loop    L1
+
+L15:
+    mov     EAX, 0              ; Reset EAX
+    mov     AL, charX           
+    mov     ECX, EAX            ; charX -> ECX
+    mov     ESI, EDI            ; @curMap from EDI to ESI
+    cmp     ECX, 0              ; If charX == 0, skips whole part
+    je      L25
+    cmp     ECX, 1              ; If charX == 1, ESI does not decrease
+    je      L2
+    dec     ESI
+
+L2:
+    lodsb                       ; Load BYTE at ESI to EAX, increment ESI by 1.
+    loop    L2
+    
+L25:
+    mov     EDI, OFFSET sharp   ; Move @sharp to EDI
+    cmpsb                       ; Compare value at ESI and EDI. If ESI has 23
+    je      L3
+    mov     EDI, OFFSET endla   ; Move @endla to EDI
+    cmpsb                       ; Compare value at ESI and EDI. If ESI has 0a
+    je      L3
+    mov     EDI, OFFSET endld   ; Move @endld to EDI
+    cmpsb                       ; Compare value at ESI and EDI. If ESI has 0d
+    je      L3
+
+    popad
+    mov     EAX, 0              ; The wall or 0a, 0d does not exist at coordinate
+    jmp     L4
+
+L3:
+    popad
+    mov     EAX, 1              ; The wall or 0a, 0d exist at coordinate
+L4:
+    pop     EBP
+    ret     
 checkWall ENDP
 ;-------------------------------------------------------------------------------------
 
