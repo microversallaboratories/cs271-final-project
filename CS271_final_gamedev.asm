@@ -29,28 +29,12 @@ charY       BYTE    6                               ; Size of DH: 1 byte - start
 char        BYTE    "@", 0                          ; Character
 sharp       BYTE    "#", 0                          ; Sharp
 inventory   BYTE    10 DUP(?)                       ; Inventory; arr of chars
+spaces      DWORD   "  ",0                          ; double space for inventory formatting
 
 consoleHandle HANDLE 0
 bytesWritten DWORD ?
 
 .code
-
-DrawInventory   PROC
-    ; implement for-loop to loop through inventory items and print each one
-    push    ebp
-    mov ebp,    esp         ; preserve ebp
-    mov esi,    [ebp+6]     ; address of inventory in esi; size of each element in the inventory * 3
-    mov ecx,    [ebp+4]     ; count in ecx
-    
-    forloop:
-        mov eax,    esi     ; move the current element into the eax register
-        call    WriteDec    ; write it out to the terminal
-        call    Crlf        ; newline
-        add     esi,    2   ; increment the instruction pointer
-        loop    forloop     ; loop
-    pop ebp
-    ret 4
-DrawInventory   ENDP
 
 main PROC
 
@@ -104,6 +88,12 @@ DrawCharacter:
         ADDR bytesWritten,
         0
 
+DrawInv:
+    push    OFFSET inventory    ; push inventory offset into stack
+    push    LENGTHOF inventory  ; push count into stack
+    call    DrawInventory       ; Draw the inventory
+
+Key:
     call    KeyInput            ; Read key and change coordinate
                                 ; Return 0 in EAX if Exiting, 1 in EAX if Continuing
     cmp     EAX, 0
@@ -222,6 +212,31 @@ L1:
     pop     EBP
     ret     16
 drawMap     ENDP
+;-------------------------------------------------------------------------------------
+
+
+;-------------------------------------------------------------------------------------
+DrawInventory   PROC
+;
+;   
+;
+;   Receive:
+;   Return:
+;-------------------------------------------------------------------------------------
+    ; implement for-loop to loop through inventory items and print each one
+    push    ebp
+    mov ebp,    esp         ; preserve ebp
+    mov esi,    [ebp+12]     ; address of inventory in esi; size of each element in the inventory * 3
+    mov ecx,    [ebp+8]     ; count in ecx
+    forloop:
+        mov eax,    [esi]    ; move the current element into the eax register
+        call    WriteString    ; write it out to the terminal
+        call    Crlf        ; newline
+        add     esi,    2   ; increment the instruction pointer
+        loop    forloop     ; loop
+    pop ebp
+    ret 8
+DrawInventory   ENDP
 ;-------------------------------------------------------------------------------------
 
 
