@@ -19,7 +19,8 @@ consoleCursor   CONSOLE_CURSOR_INFO <100, 0>        ; Set second Argument to 1 i
 fileBuffer  BYTE MAP_QTY DUP(BUFFER_SIZE DUP (?))
 fileX       DWORD 20
 fileY       DWORD 10
-curMap      DWORD 0
+curMap      BYTE BUFFER_SIZE DUP (?)
+curMapNum   DWORD 0
 fileName    DWORD "A", 0
 fileHandle  HANDLE ?
 
@@ -68,8 +69,8 @@ DrawBackground:
     call    Gotoxy
 
     push    OFFSET fileBuffer       ; Put @fileBuffer to stack as reference 
+    push    OFFSET curMap           ; Put @curMap to stack as reference
     push    BUFFER_SIZE             ; Put BUFFER_SIZE to stack as value 
-    push    OFFSET curMap           ; Put curMap to stack as reference
     push    curMapNum               ; Put curMapNum to stack as value
     call    drawMap                 ; Draw Map from array
 
@@ -101,7 +102,7 @@ readMap     PROC
 ;
 ;   Read Map from text file and store them in array
 ;       Uses Register Indirect Mode 
-;   Receive:    array, MAP_QTY, BUFFER_SIZE, filename
+;   Receive:    fileBuffer, MAP_QTY, BUFFER_SIZE, filename
 ;   Return:     EAX
 ;------------------------------------------------------------------------------------- 
     push    EBP
@@ -138,7 +139,6 @@ ReadMapFromFile:
         jmp     EndReading          ; Exit Procedure with EAX = 0, which Exit program
 
     bufferSizeOK:
-        mov     fileBuffer[EAX], 0  ; End the string
         mWrite  "File size: "       ; Debug purpose. Displays the size of map file
         call    WriteDec
         call    Crlf
@@ -162,22 +162,44 @@ EndReading:
 readMap     ENDP
 ;-------------------------------------------------------------------------------------
 
+
 ;-------------------------------------------------------------------------------------
 drawMap     PROC
 ;
 ;   Read Map from text file and store them in array
 ;       Uses Register Indirect Mode 
-;   Receive:    array, MAP_QTY, BUFFER_SIZE, filename
+;   Receive:    fileBuffer, curMap, MAP_QTY, BUFFER_SIZE
 ;   Return:     EAX
 ;-------------------------------------------------------------------------------------
     push    EBP
     mov     EBP, ESP
     pushad
-    mov     EDI, [EBP+20]       ; @Array
-    mov     ESI, [EBP+16]       ; curMap
-    mov     EBX, [EBP+8]        ; curMapNum
-    
+    mov     EDI, [EBP+20]       ; @fileBuffer
+    mov     ESI, [EBP+16]       ; @curMap
 
+    mov     EAX, [EBP+12]       ; BUFFER_SIZE
+    mov     EBX, [EBP+8]        ; curMapNum
+    mul     EBX                 ; EAX = curMapNum * BUFFER_SIZE
+
+    add     EDI, EAX            ; EDI is moved curMapNum * BUFFER_SIZE
+
+    mov     EAX, [EBP+12]       ; BUFFER_SIZE
+    mov     EBX, 4              ; 4 to EBX
+    cdq
+    div     EBX                 ; BUFFER_SIZE / 4
+    mov     ECX, EAX            ; Set loop counter to EAX
+    
+L1:
+    mov     EAX, [EDI]          ; Copy fileBuffer Array[i] to EAX
+    mov     [ESI], EAX          ; Copy EAX to curMap Array[i]
+    add     EDI, 4              ; Move on to next index
+    add     ESI, 4              ; Move on to next index
+    loop    L1                  ; Loop to L1. Copies fileBuffer to curMap
+
+    mov     ESI, [EBP+16]       ; @curMap array[0]
+    mov     EDX, ESI            ; Move it to display string
+    call    WriteString
+    
     popad
     pop     EBP
     ret     16
@@ -190,7 +212,7 @@ KeyInput    PROC
 ;
 ;   Read Key Input and move character's coordination.
 ;       Return 1 to EAX if continuing, 0 if Exiting Game
-;   Receive:    None
+;   Receive:    charX, charY
 ;   Return:     EAX
 ;-------------------------------------------------------------------------------------
     KeyInputLoop:
@@ -204,7 +226,7 @@ KeyInput    PROC
         jne     UpKeyCheck
         sub     charX, 1        ; Move character one space to the left
 
-        ;push OFFSET fileBuffer
+        ;push OFFSET curMap
         ;call checkWall
 
         jmp     KeyInputEnd
@@ -246,7 +268,15 @@ KeyInput    PROC
 KeyInput    ENDP
 ;-------------------------------------------------------------------------------------
     
-checkWall PROC      ; WIP
+
+;-------------------------------------------------------------------------------------
+checkWall PROC      
+;
+;   Check if there is wall at the player's coordinate
+;       Return 1 to EAX if there is no wall, 0 if exist
+;   Receive:    curMap, charX, charY
+;   Return:     EAX
+;-------------------------------------------------------------------------------------
     ;mov EDI, OFFSET sharp
     ;lodsb
     ;scasb
@@ -257,5 +287,6 @@ checkWall PROC      ; WIP
 
 
 checkWall ENDP
+;-------------------------------------------------------------------------------------
 
 END main
