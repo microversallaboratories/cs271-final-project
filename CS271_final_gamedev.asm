@@ -7,27 +7,27 @@ TITLE gamedev     (CS271_final_gamedev.asm)
 INCLUDE Irvine32.inc
 INCLUDE Macros.inc
 
-BUFFER_SIZE = 5000
-; MIN_X EQU 0                                       ; WIP
-; MAX_X EQU 32                                      ; WIP
+BUFFER_SIZE EQU <512>
+MAP_QTY     EQU <5>
 
 .data
 endl        EQU <0dh, 0ah>                          ; End of Line Sequence
 gameTitle   BYTE "@'s Adventure", 0
 consoleSize     SMALL_RECT <0, 0, 40, 20>
-consoleCursor   CONSOLE_CURSOR_INFO <100, 0>          ; Set second Argument to 1 if want to see visible cursor
+consoleCursor   CONSOLE_CURSOR_INFO <100, 0>        ; Set second Argument to 1 if want to see visible cursor
 
-fileBuffer  BYTE BUFFER_SIZE DUP (?)
+fileBuffer  BYTE MAP_QTY DUP(BUFFER_SIZE DUP (?))
 fileX       DWORD 20
 fileY       DWORD 10
-fileName    BYTE "map1.txt", 0
+curMap      DWORD 0
+fileName    DWORD "A", 0
 fileHandle  HANDLE ?
 
-charX       BYTE    10                                 ; Size of DL: 1 byte - starting xpos
-charY       BYTE    6                                  ; Size of DH: 1 byte - starting ypos
-char        BYTE    "@", 0                             ; Character
-sharp       BYTE    "#", 0                             ; Sharp
-inventory   BYTE    10 DUP(?)                          ; Inventory; arr of chars
+charX       BYTE    10                              ; Size of DL: 1 byte - starting xpos
+charY       BYTE    6                               ; Size of DH: 1 byte - starting ypos
+char        BYTE    "@", 0                          ; Character
+sharp       BYTE    "#", 0                          ; Sharp
+inventory   BYTE    10 DUP(?)                       ; Inventory; arr of chars
 
 consoleHandle   HANDLE 0
 bytesWritten    DWORD ?
@@ -49,39 +49,14 @@ Setup:
         consoleHandle,
         ADDR consoleCursor
 
-    FileIO:
-        mov     EDX, OFFSET fileName
-        call    OpenInputFile
-        mov     fileHandle, EAX
+    push    OFFSET fileBuffer       ; Put @fileBuffer to stack as reference 
+    push    MAP_QTY                 ; Put MAP_QTY to stack as value
+    push    BUFFER_SIZE             ; Put BUFFER_SIZE to stack as value
+    push    OFFSET fileName         ; Put fileName to stack as reference
+    call    readMap                 ; Read Map files and store them in array
 
-        cmp     EAX, INVALID_HANDLE_VALUE
-        jne     fileOpened
-        mWrite  <"Cannot Open File", 0dh, 0ah>
-        jmp     GameExit
-
-    fileOpened:
-        mov     EDX, OFFSET fileBuffer
-        mov     ECX, BUFFER_SIZE
-        call    ReadFromFile
-        jnc     checkBufferSize
-        mWrite  <"Error reading File. ", 0dh, 0ah>
-        jmp     fileClose
-
-    checkBufferSize:
-        cmp     EAX, BUFFER_SIZE
-        jb      bufferSizeOK
-        mWrite  <"ERROR: buffer too small for the file", 0dh, 0ah>
-        jmp     GameExit
-
-    bufferSizeOK:
-        mov     fileBuffer[EAX], 0
-        mWrite  "File size: "
-        call    WriteDec
-        call    Crlf
-
-    fileClose:
-        mov     EAX, fileHandle
-        call    CloseFile
+    cmp     EAX, 0
+    je      GameExit                ; Jump to GameExit if EAX = 0
     
 
 GameLoop:
@@ -92,8 +67,11 @@ DrawBackground:
     mov     DH, 0
     call    Gotoxy
 
-    mov     EDX, OFFSET fileBuffer
-    call    WriteString    
+    push    OFFSET fileBuffer       ; Put @fileBuffer to stack as reference 
+    push    BUFFER_SIZE             ; Put BUFFER_SIZE to stack as value 
+    push    OFFSET curMap           ; Put curMap to stack as reference
+    push    curMapNum               ; Put curMapNum to stack as value
+    call    drawMap                 ; Draw Map from array
 
 DrawCharacter:
     mov     DL, charX           ; X-Coordinate
@@ -117,6 +95,95 @@ GameExit:
     exit	                      ; exit to operating system
 
 main    ENDP
+
+;-------------------------------------------------------------------------------------
+readMap     PROC
+;
+;   Read Map from text file and store them in array
+;       Uses Register Indirect Mode 
+;   Receive:    array, MAP_QTY, BUFFER_SIZE, filename
+;   Return:     EAX
+;------------------------------------------------------------------------------------- 
+    push    EBP
+    mov     EBP, ESP
+    pushad
+    mov     EDI, [EBP+20]       ; @Array
+    mov     ECX, [EBP+16]       ; Map Quantity
+    mov     EBX, [EBP+8]        ; fileName
+    mov     ESI, 1              ; Used to increment FileName
+
+ReadMapFromFile:
+    push ECX
+    FileIO:
+        mov     EDX, EBX        ; Filename (A, B, C, ... , Qty-1)
+        call    OpenInputFile   ; Open the file
+        mov     fileHandle, EAX ; Check how file went through
+        cmp     EAX, INVALID_HANDLE_VALUE
+        jne     fileOpened      ; Jump to next stage if opened
+        mov     EAX, 0
+        jmp     EndReading      ; Exit Procedure with EAX = 0, which Exit program
+
+    fileOpened:
+        mov     EDX, EDI            ; Load Address of Array to EDX
+        mov     ECX, [EBP+12]       ; Load Buffer Size to ECX
+        call    ReadFromFile        ; Read from the file and store it to address of array with buffer size total
+        jnc     bufferSizeOK         
+        mWrite  <"Error reading File. ", 0dh, 0ah>
+        jmp     fileClose
+
+    checkBufferSize:
+        cmp     EAX, [EBP+12]       ; Compare Actual Map Size
+        jb      bufferSizeOK        ; Jump to Size display if below Buffer size
+        mov     EAX, 0
+        jmp     EndReading          ; Exit Procedure with EAX = 0, which Exit program
+
+    bufferSizeOK:
+        mov     fileBuffer[EAX], 0  ; End the string
+        mWrite  "File size: "       ; Debug purpose. Displays the size of map file
+        call    WriteDec
+        call    Crlf
+
+    fileClose:
+        mov     EAX, fileHandle
+        call    CloseFile           ; Close opened file
+
+    add     EDI, [EBP+12]           ; Increase current address pointing by Buffer size
+    add     [EBX], ESI              ; Increase file name (A -> B, B -> C, .... )
+    pop     ECX                     ; Pop ECX to continue counter
+    loop    ReadMapFromFile         ; Loop back to reading
+
+
+    popad
+    mov     EAX, 1
+EndReading:
+                                    ; Immediately end procedure if this Label is called
+    pop     EBP
+    ret     12
+readMap     ENDP
+;-------------------------------------------------------------------------------------
+
+;-------------------------------------------------------------------------------------
+drawMap     PROC
+;
+;   Read Map from text file and store them in array
+;       Uses Register Indirect Mode 
+;   Receive:    array, MAP_QTY, BUFFER_SIZE, filename
+;   Return:     EAX
+;-------------------------------------------------------------------------------------
+    push    EBP
+    mov     EBP, ESP
+    pushad
+    mov     EDI, [EBP+20]       ; @Array
+    mov     ESI, [EBP+16]       ; curMap
+    mov     EBX, [EBP+8]        ; curMapNum
+    
+
+    popad
+    pop     EBP
+    ret     16
+drawMap     ENDP
+;-------------------------------------------------------------------------------------
+
 
 ;-------------------------------------------------------------------------------------
 KeyInput    PROC
