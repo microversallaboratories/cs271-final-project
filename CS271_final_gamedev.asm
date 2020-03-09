@@ -30,12 +30,30 @@ char        BYTE    "@", 0                          ; Character
 sharp       BYTE    "#", 0                          ; Sharp
 inventory   BYTE    10 DUP(?)                       ; Inventory; arr of chars
 
-consoleHandle   HANDLE 0
-bytesWritten    DWORD ?
+consoleHandle HANDLE 0
+bytesWritten DWORD ?
 
 .code
 
-main    PROC
+DrawInventory   PROC
+    ; implement for-loop to loop through inventory items and print each one
+    push    ebp
+    mov ebp,    esp         ; preserve ebp
+    mov esi,    [ebp+6]     ; address of inventory in esi; size of each element in the inventory * 3
+    mov ecx,    [ebp+4]     ; count in ecx
+    
+    forloop:
+        mov eax,    esi     ; move the current element into the eax register
+        call    WriteDec    ; write it out to the terminal
+        call    Crlf        ; newline
+        add     esi,    2   ; increment the instruction pointer
+        loop    forloop     ; loop
+    pop ebp
+    ret 4
+DrawInventory   ENDP
+
+main PROC
+
 Setup:
     INVOKE  SetConsoleTitle, ADDR gameTitle
     INVOKE  GetStdHandle, STD_OUTPUT_HANDLE
@@ -267,7 +285,7 @@ KeyInput    PROC
         ret
 KeyInput    ENDP
 ;-------------------------------------------------------------------------------------
-    
+
 
 ;-------------------------------------------------------------------------------------
 checkWall PROC      
