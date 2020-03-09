@@ -225,17 +225,17 @@ DrawInventory   PROC
 ;-------------------------------------------------------------------------------------
     ; implement for-loop to loop through inventory items and print each one
     push    ebp
-    mov ebp,    esp         ; preserve ebp
-    mov esi,    [ebp+12]     ; address of inventory in esi; size of each element in the inventory * 3
-    mov ecx,    [ebp+8]     ; count in ecx
+    mov     ebp,    esp         ; preserve ebp
+    mov     esi,    [ebp+12]     ; address of inventory in esi; size of each element in the inventory * 3
+    mov     ecx,    [ebp+8]     ; count in ecx
     forloop:
-        mov eax,    [esi]    ; move the current element into the eax register
+        mov     eax,    [esi]    ; move the current element into the eax register
         call    WriteString    ; write it out to the terminal
         call    Crlf        ; newline
         add     esi,    2   ; increment the instruction pointer
         loop    forloop     ; loop
-    pop ebp
-    ret 8
+    pop     ebp
+    ret     8
 DrawInventory   ENDP
 ;-------------------------------------------------------------------------------------
 
