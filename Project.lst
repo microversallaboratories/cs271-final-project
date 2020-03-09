@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.24.28316.0	    03/09/20 15:15:16
+Microsoft (R) Macro Assembler Version 14.24.28316.0	    03/09/20 15:23:33
 %gamedev     (CS271_final_gamedev.asm			     Page 1 - 1
 
 
@@ -44,35 +44,33 @@ Microsoft (R) Macro Assembler Version 14.24.28316.0	    03/09/20 15:15:16
  00000016 00000064		consoleCursor   CONSOLE_CURSOR_INFO <100, 0>        ; Set second Argument to 1 if want to see visible cursor
 	   00000000
 
- 0000001E  00000005 [		fileBuffer  BYTE MAP_QTY DUP(BUFFER_SIZE DUP (?))   ; V
+ 0000001E  00000005 [		fileBuffer  BYTE MAP_QTY DUP(BUFFER_SIZE DUP (?))   ; Where the arrays of map file is stored
 	    00000200 [
 	     00
 	    ]
 	   ]
- 00000A1E 00000014		fileX       DWORD 20
- 00000A22 0000000A		fileY       DWORD 10
- 00000A26  00000200 [		curMap      BYTE BUFFER_SIZE DUP (?)
+ 00000A1E  00000200 [		curMap      BYTE BUFFER_SIZE DUP (?)                ; Current Map array is stored
 	    00
 	   ]
- 00000C26 00000000		curMapNum   DWORD 0
- 00000C2A 00000041		fileName    DWORD "A", 0
+ 00000C1E 00000000		curMapNum   DWORD 0                                 ; Current Map #
+ 00000C22 00000041		fileName    DWORD "A", 0                            ; File names, start from A~....Z
 	   00000000
- 00000C32 00000000		fileHandle  HANDLE ?
+ 00000C2A 00000000		fileHandle  HANDLE ?
 
- 00000C36 01			charX       BYTE    1                               ; Size of DL: 1 byte - starting xpos
- 00000C37 01			charY       BYTE    1                               ; Size of DH: 1 byte - starting ypos
- 00000C38 40 00			char        BYTE    "@", 0                          ; Character
- 00000C3A 0A			endla       BYTE    10                              ; endline character 0a
- 00000C3B 0D			endld       BYTE    13                              ; endline character 0d
- 00000C3C 23			sharp       BYTE    "#"                             ; sharp character
- 00000C3D  0000000A [		inventory   BYTE    10 DUP(?)                       ; Inventory; arr of chars
+ 00000C2E 01			charX       BYTE    1                               ; Size of DL: 1 byte - starting xpos
+ 00000C2F 01			charY       BYTE    1                               ; Size of DH: 1 byte - starting ypos
+ 00000C30 40 00			char        BYTE    "@", 0                          ; Character
+ 00000C32 0A			endla       BYTE    10                              ; endline character 0a
+ 00000C33 0D			endld       BYTE    13                              ; endline character 0d
+ 00000C34 23			sharp       BYTE    "#"                             ; sharp character
+ 00000C35  0000000A [		inventory   BYTE    10 DUP(?)                       ; Inventory; arr of chars
 	    00
 	   ]
- 00000C47 00002020		spaces      DWORD   "  ",0                          ; double space for inventory formatting
+ 00000C3F 00002020		spaces      DWORD   "  ",0                          ; double space for inventory formatting
 	   00000000
 
- 00000C4F 00000000		consoleHandle HANDLE 0
- 00000C53 00000000		bytesWritten DWORD ?
+ 00000C47 00000000		consoleHandle HANDLE 0
+ 00000C4B 00000000		bytesWritten DWORD ?
 
  00000000			.code
 
@@ -85,7 +83,7 @@ Microsoft (R) Macro Assembler Version 14.24.28316.0	    03/09/20 15:15:16
 				    INVOKE  GetStdHandle, STD_OUTPUT_HANDLE
  0000000A  6A F5	   *	    push    -00000000Bh
  0000000C  E8 00000000 E   *	    call   GetStdHandle
- 00000011  A3 00000C4F R	    mov     consoleHandle, EAX
+ 00000011  A3 00000C47 R	    mov     consoleHandle, EAX
 
 				    INVOKE  SetConsoleWindowInfo, 
 				        consoleHandle,
@@ -93,24 +91,24 @@ Microsoft (R) Macro Assembler Version 14.24.28316.0	    03/09/20 15:15:16
 				        ADDR consoleSize
  00000016  68 0000000E R   *	    push   OFFSET consoleSize
  0000001B  6A 01	   *	    push   +000000001h
- 0000001D  FF 35 00000C4F R *	    push   consoleHandle
+ 0000001D  FF 35 00000C47 R *	    push   consoleHandle
  00000023  E8 00000000 E   *	    call   SetConsoleWindowInfo
 
 				    INVOKE  SetConsoleCursorInfo,
 				        consoleHandle,
 				        ADDR consoleCursor
  00000028  68 00000016 R   *	    push   OFFSET consoleCursor
- 0000002D  FF 35 00000C4F R *	    push   consoleHandle
+ 0000002D  FF 35 00000C47 R *	    push   consoleHandle
  00000033  E8 00000000 E   *	    call   SetConsoleCursorInfo
 
  00000038  68 0000001E R	    push    OFFSET fileBuffer       ; Put @fileBuffer to stack as reference 
  0000003D  6A 05		    push    MAP_QTY                 ; Put MAP_QTY to stack as value
  0000003F  68 00000200		    push    BUFFER_SIZE             ; Put BUFFER_SIZE to stack as value
- 00000044  68 00000C2A R	    push    OFFSET fileName         ; Put fileName to stack as reference
- 00000049  E8 0000006F		    call    readMap                 ; Read Map files and store them in array
+ 00000044  68 00000C22 R	    push    OFFSET fileName         ; Put fileName to stack as reference
+ 00000049  E8 0000007B		    call    readMap                 ; Read Map files and store them in array
 
  0000004E  83 F8 00		    cmp     EAX, 0
- 00000051  74 63		    je      GameExit                ; Jump to GameExit if EAX = 0
+ 00000051  74 6F		    je      GameExit                ; Jump to GameExit if EAX = 0
 				    
 
  00000053			GameLoop:
@@ -122,14 +120,14 @@ Microsoft (R) Macro Assembler Version 14.24.28316.0	    03/09/20 15:15:16
  00000057  E8 00000000 E	    call    Gotoxy
 
  0000005C  68 0000001E R	    push    OFFSET fileBuffer       ; Put @fileBuffer to stack as reference 
- 00000061  68 00000A26 R	    push    OFFSET curMap           ; Put @curMap to stack as reference
+ 00000061  68 00000A1E R	    push    OFFSET curMap           ; Put @curMap to stack as reference
  00000066  68 00000200		    push    BUFFER_SIZE             ; Put BUFFER_SIZE to stack as value 
- 0000006B  FF 35 00000C26 R	    push    curMapNum               ; Put curMapNum to stack as value
- 00000071  E8 000000CA		    call    drawMap                 ; Draw Map from array
+ 0000006B  FF 35 00000C1E R	    push    curMapNum               ; Put curMapNum to stack as value
+ 00000071  E8 000000D6		    call    drawMap                 ; Draw Map from array
 
  00000076			DrawCharacter:
- 00000076  8A 15 00000C36 R	    mov     DL, charX           ; X-Coordinate
- 0000007C  8A 35 00000C37 R	    mov     DH, charY           ; Y-Coordinate
+ 00000076  8A 15 00000C2E R	    mov     DL, charX           ; X-Coordinate
+ 0000007C  8A 35 00000C2F R	    mov     DH, charY           ; Y-Coordinate
  00000082  E8 00000000 E	    call    Gotoxy              ; locate Cursor
 				    
 				    INVOKE WriteConsole,        ; Write character '@'
@@ -139,165 +137,165 @@ Microsoft (R) Macro Assembler Version 14.24.28316.0	    03/09/20 15:15:16
 				        ADDR bytesWritten,
 				        0
  00000087  6A 00	   *	    push   +000000000h
- 00000089  68 00000C53 R   *	    push   OFFSET bytesWritten
+ 00000089  68 00000C4B R   *	    push   OFFSET bytesWritten
  0000008E  6A 01	   *	    push   +000000001h
- 00000090  68 00000C38 R   *	    push   OFFSET char
- 00000095  FF 35 00000C4F R *	    push   consoleHandle
+ 00000090  68 00000C30 R   *	    push   OFFSET char
+ 00000095  FF 35 00000C47 R *	    push   consoleHandle
  0000009B  E8 00000000 E   *	    call   WriteConsoleA
 
  000000A0			DrawInv:
-				    ;push    OFFSET inventory    ; push inventory offset into stack
-				    ;push    LENGTHOF inventory  ; push count into stack
-				    ;call    DrawInventory       ; Draw the inventory
+ 000000A0  68 00000C35 R	    push    OFFSET inventory    ; push inventory offset into stack
+ 000000A5  6A 0A		    push    LENGTHOF inventory  ; push count into stack
+ 000000A7  E8 000000DC		    call    DrawInventory       ; Draw the inventory
 
- 000000A0			Key:
- 000000A0  68 00000A26 R	    push    OFFSET curMap       ; Put @curMap to stack as reference
- 000000A5  68 00000200		    push    BUFFER_SIZE         ; Put BUFFER_SIZE to stack as value
- 000000AA  E8 000000EB		    call    KeyInput            ; Read key and change coordinate
+ 000000AC			Key:
+ 000000AC  68 00000A1E R	    push    OFFSET curMap       ; Put @curMap to stack as reference
+ 000000B1  68 00000200		    push    BUFFER_SIZE         ; Put BUFFER_SIZE to stack as value
+ 000000B6  E8 000000EB		    call    KeyInput            ; Read key and change coordinate
 				                                ; Return 0 in EAX if Exiting, 1 in EAX if Continuing
- 000000AF  83 F8 00		    cmp     EAX, 0
- 000000B2  74 02		    je      GameExit            ; Jump to GameExit if EAX = 0
- 000000B4  EB 9D		    jmp     GameLoop            ; Jump to GameLoop if EAX = 1
+ 000000BB  83 F8 00		    cmp     EAX, 0
+ 000000BE  74 02		    je      GameExit            ; Jump to GameExit if EAX = 0
+ 000000C0  EB 91		    jmp     GameLoop            ; Jump to GameLoop if EAX = 1
 
- 000000B6			GameExit:
+ 000000C2			GameExit:
 				    exit	                      ; exit to operating system
- 000000B6  6A 00	   *	    push   +000000000h
- 000000B8  E8 00000000 E   *	    call   ExitProcess
+ 000000C2  6A 00	   *	    push   +000000000h
+ 000000C4  E8 00000000 E   *	    call   ExitProcess
 
- 000000BD			main    ENDP
+ 000000C9			main    ENDP
 
 				;-------------------------------------------------------------------------------------
- 000000BD			readMap     PROC
+ 000000C9			readMap     PROC
 				;
 				;   Read Map from text file and store them in array
 				;       Uses Register Indirect Mode 
 				;   Receive:    fileBuffer, MAP_QTY, BUFFER_SIZE, filename
 				;   Return:     EAX
 				;------------------------------------------------------------------------------------- 
- 000000BD  55			    push    EBP
- 000000BE  8B EC		    mov     EBP, ESP
- 000000C0  60			    pushad
- 000000C1  8B 7D 14		    mov     EDI, [EBP+20]       ; @Array
- 000000C4  8B 4D 10		    mov     ECX, [EBP+16]       ; Map Quantity
- 000000C7  8B 5D 08		    mov     EBX, [EBP+8]        ; fileName
- 000000CA  BE 00000001		    mov     ESI, 1              ; Used to increment FileName
+ 000000C9  55			    push    EBP
+ 000000CA  8B EC		    mov     EBP, ESP
+ 000000CC  60			    pushad
+ 000000CD  8B 7D 14		    mov     EDI, [EBP+20]       ; @Array
+ 000000D0  8B 4D 10		    mov     ECX, [EBP+16]       ; Map Quantity
+ 000000D3  8B 5D 08		    mov     EBX, [EBP+8]        ; fileName
+ 000000D6  BE 00000001		    mov     ESI, 1              ; Used to increment FileName
 
- 000000CF			ReadMapFromFile:
- 000000CF  51			    push ECX
- 000000D0			    FileIO:
- 000000D0  8B D3		        mov     EDX, EBX        ; Filename (A, B, C, ... , Qty-1)
- 000000D2  E8 00000000 E	        call    OpenInputFile   ; Open the file
- 000000D7  A3 00000C32 R	        mov     fileHandle, EAX ; Check how file went through
- 000000DC  83 F8 FF		        cmp     EAX, INVALID_HANDLE_VALUE
- 000000DF  75 07		        jne     fileOpened      ; Jump to next stage if opened
- 000000E1  B8 00000000		        mov     EAX, 0
- 000000E6  EB 54		        jmp     EndReading      ; Exit Procedure with EAX = 0, which Exit program
+ 000000DB			ReadMapFromFile:
+ 000000DB  51			    push ECX
+ 000000DC			    FileIO:
+ 000000DC  8B D3		        mov     EDX, EBX        ; Filename (A, B, C, ... , Qty-1)
+ 000000DE  E8 00000000 E	        call    OpenInputFile   ; Open the file
+ 000000E3  A3 00000C2A R	        mov     fileHandle, EAX ; Check how file went through
+ 000000E8  83 F8 FF		        cmp     EAX, INVALID_HANDLE_VALUE
+ 000000EB  75 07		        jne     fileOpened      ; Jump to next stage if opened
+ 000000ED  B8 00000000		        mov     EAX, 0
+ 000000F2  EB 54		        jmp     EndReading      ; Exit Procedure with EAX = 0, which Exit program
 
- 000000E8			    fileOpened:
- 000000E8  8B D7		        mov     EDX, EDI            ; Load Address of Array to EDX
- 000000EA  8B 4D 0C		        mov     ECX, [EBP+12]       ; Load Buffer Size to ECX
- 000000ED  E8 00000000 E	        call    ReadFromFile        ; Read from the file and store it to address of array with buffer size total
- 000000F2  73 1A		        jnc     bufferSizeOK         
+ 000000F4			    fileOpened:
+ 000000F4  8B D7		        mov     EDX, EDI            ; Load Address of Array to EDX
+ 000000F6  8B 4D 0C		        mov     ECX, [EBP+12]       ; Load Buffer Size to ECX
+ 000000F9  E8 00000000 E	        call    ReadFromFile        ; Read from the file and store it to address of array with buffer size total
+ 000000FE  73 1A		        jnc     bufferSizeOK         
 				        mWrite  <"Error reading File. ", 0dh, 0ah>
- 00000C57		     1		.data		
- 00000C57 45 72 72 6F 72     1		??0000 BYTE "Error reading File. ", 0dh, 0ah,0	
+ 00000C4F		     1		.data		
+ 00000C4F 45 72 72 6F 72     1		??0000 BYTE "Error reading File. ", 0dh, 0ah,0	
 	   20 72 65 61 64
 	   69 6E 67 20 46
 	   69 6C 65 2E 20
 	   0D 0A 00
- 000000F4		     1		.code
- 000000F4  52		     1		push	edx
- 000000F5  BA 00000C57 R     1		mov	edx,OFFSET ??0000
- 000000FA  E8 00000000 E     1		call	WriteString
- 000000FF  5A		     1		pop	edx
- 00000100  EB 22		        jmp     fileClose
+ 00000100		     1		.code
+ 00000100  52		     1		push	edx
+ 00000101  BA 00000C4F R     1		mov	edx,OFFSET ??0000
+ 00000106  E8 00000000 E     1		call	WriteString
+ 0000010B  5A		     1		pop	edx
+ 0000010C  EB 22		        jmp     fileClose
 
- 00000102			    checkBufferSize:
- 00000102  3B 45 0C		        cmp     EAX, [EBP+12]       ; Compare Actual Map Size
- 00000105  72 07		        jb      bufferSizeOK        ; Jump to Size display if below Buffer size
- 00000107  B8 00000000		        mov     EAX, 0
- 0000010C  EB 2E		        jmp     EndReading          ; Exit Procedure with EAX = 0, which Exit program
+ 0000010E			    checkBufferSize:
+ 0000010E  3B 45 0C		        cmp     EAX, [EBP+12]       ; Compare Actual Map Size
+ 00000111  72 07		        jb      bufferSizeOK        ; Jump to Size display if below Buffer size
+ 00000113  B8 00000000		        mov     EAX, 0
+ 00000118  EB 2E		        jmp     EndReading          ; Exit Procedure with EAX = 0, which Exit program
 
- 0000010E			    bufferSizeOK:
+ 0000011A			    bufferSizeOK:
 				        mWrite  "File size: "       ; Debug purpose. Displays the size of map file
- 00000C6E		     1		.data		
- 00000C6E 46 69 6C 65 20     1		??0001 BYTE "File size: ",0	
+ 00000C66		     1		.data		
+ 00000C66 46 69 6C 65 20     1		??0001 BYTE "File size: ",0	
 	   73 69 7A 65 3A
 	   20 00
- 0000010E		     1		.code
- 0000010E  52		     1		push	edx
- 0000010F  BA 00000C6E R     1		mov	edx,OFFSET ??0001
- 00000114  E8 00000000 E     1		call	WriteString
- 00000119  5A		     1		pop	edx
- 0000011A  E8 00000000 E	        call    WriteDec
- 0000011F  E8 00000000 E	        call    Crlf
+ 0000011A		     1		.code
+ 0000011A  52		     1		push	edx
+ 0000011B  BA 00000C66 R     1		mov	edx,OFFSET ??0001
+ 00000120  E8 00000000 E     1		call	WriteString
+ 00000125  5A		     1		pop	edx
+ 00000126  E8 00000000 E	        call    WriteDec
+ 0000012B  E8 00000000 E	        call    Crlf
 
- 00000124			    fileClose:
- 00000124  A1 00000C32 R	        mov     EAX, fileHandle
- 00000129  E8 00000000 E	        call    CloseFile           ; Close opened file
+ 00000130			    fileClose:
+ 00000130  A1 00000C2A R	        mov     EAX, fileHandle
+ 00000135  E8 00000000 E	        call    CloseFile           ; Close opened file
 
- 0000012E  03 7D 0C		    add     EDI, [EBP+12]           ; Increase current address pointing by Buffer size
- 00000131  01 33		    add     [EBX], ESI              ; Increase file name (A -> B, B -> C, .... )
- 00000133  59			    pop     ECX                     ; Pop ECX to continue counter
- 00000134  E2 99		    loop    ReadMapFromFile         ; Loop back to reading
+ 0000013A  03 7D 0C		    add     EDI, [EBP+12]           ; Increase current address pointing by Buffer size
+ 0000013D  01 33		    add     [EBX], ESI              ; Increase file name (A -> B, B -> C, .... )
+ 0000013F  59			    pop     ECX                     ; Pop ECX to continue counter
+ 00000140  E2 99		    loop    ReadMapFromFile         ; Loop back to reading
 
 
- 00000136  61			    popad
- 00000137  B8 00000001		    mov     EAX, 1
- 0000013C			EndReading:
+ 00000142  61			    popad
+ 00000143  B8 00000001		    mov     EAX, 1
+ 00000148			EndReading:
 				                                    ; Immediately end procedure if this Label is called
- 0000013C  5D			    pop     EBP
- 0000013D  C2 000C		    ret     12
- 00000140			readMap     ENDP
+ 00000148  5D			    pop     EBP
+ 00000149  C2 000C		    ret     12
+ 0000014C			readMap     ENDP
 				;-------------------------------------------------------------------------------------
 
 
 				;-------------------------------------------------------------------------------------
- 00000140			drawMap     PROC
+ 0000014C			drawMap     PROC
 				;
 				;   Read Map from text file and store them in array
 				;       Uses Register Indirect Mode 
 				;   Receive:    fileBuffer, curMap, MAP_QTY, BUFFER_SIZE
 				;   Return:     EAX
 				;-------------------------------------------------------------------------------------
- 00000140  55			    push    EBP
- 00000141  8B EC		    mov     EBP, ESP
- 00000143  60			    pushad
- 00000144  8B 7D 14		    mov     EDI, [EBP+20]       ; @fileBuffer
- 00000147  8B 75 10		    mov     ESI, [EBP+16]       ; @curMap
+ 0000014C  55			    push    EBP
+ 0000014D  8B EC		    mov     EBP, ESP
+ 0000014F  60			    pushad
+ 00000150  8B 7D 14		    mov     EDI, [EBP+20]       ; @fileBuffer
+ 00000153  8B 75 10		    mov     ESI, [EBP+16]       ; @curMap
 
- 0000014A  8B 45 0C		    mov     EAX, [EBP+12]       ; BUFFER_SIZE
- 0000014D  8B 5D 08		    mov     EBX, [EBP+8]        ; curMapNum
- 00000150  F7 E3		    mul     EBX                 ; EAX = curMapNum * BUFFER_SIZE
+ 00000156  8B 45 0C		    mov     EAX, [EBP+12]       ; BUFFER_SIZE
+ 00000159  8B 5D 08		    mov     EBX, [EBP+8]        ; curMapNum
+ 0000015C  F7 E3		    mul     EBX                 ; EAX = curMapNum * BUFFER_SIZE
 
- 00000152  03 F8		    add     EDI, EAX            ; EDI is moved curMapNum * BUFFER_SIZE
+ 0000015E  03 F8		    add     EDI, EAX            ; EDI is moved curMapNum * BUFFER_SIZE
 
- 00000154  8B 45 0C		    mov     EAX, [EBP+12]       ; BUFFER_SIZE
- 00000157  BB 00000004		    mov     EBX, 4              ; 4 to EBX
- 0000015C  99			    cdq
- 0000015D  F7 F3		    div     EBX                 ; BUFFER_SIZE / 4
- 0000015F  8B C8		    mov     ECX, EAX            ; Set loop counter to EAX
+ 00000160  8B 45 0C		    mov     EAX, [EBP+12]       ; BUFFER_SIZE
+ 00000163  BB 00000004		    mov     EBX, 4              ; 4 to EBX
+ 00000168  99			    cdq
+ 00000169  F7 F3		    div     EBX                 ; BUFFER_SIZE / 4
+ 0000016B  8B C8		    mov     ECX, EAX            ; Set loop counter to EAX
 				    
- 00000161			L1:
- 00000161  8B 07		    mov     EAX, [EDI]          ; Copy fileBuffer Array[i] to EAX
- 00000163  89 06		    mov     [ESI], EAX          ; Copy EAX to curMap Array[i]
- 00000165  83 C7 04		    add     EDI, 4              ; Move on to next index
- 00000168  83 C6 04		    add     ESI, 4              ; Move on to next index
- 0000016B  E2 F4		    loop    L1                  ; Loop to L1. Copies fileBuffer to curMap
+ 0000016D			L1:
+ 0000016D  8B 07		    mov     EAX, [EDI]          ; Copy fileBuffer Array[i] to EAX
+ 0000016F  89 06		    mov     [ESI], EAX          ; Copy EAX to curMap Array[i]
+ 00000171  83 C7 04		    add     EDI, 4              ; Move on to next index
+ 00000174  83 C6 04		    add     ESI, 4              ; Move on to next index
+ 00000177  E2 F4		    loop    L1                  ; Loop to L1. Copies fileBuffer to curMap
 
- 0000016D  8B 75 10		    mov     ESI, [EBP+16]       ; @curMap array[0]
- 00000170  8B D6		    mov     EDX, ESI            ; Move it to display string
- 00000172  E8 00000000 E	    call    WriteString
+ 00000179  8B 75 10		    mov     ESI, [EBP+16]       ; @curMap array[0]
+ 0000017C  8B D6		    mov     EDX, ESI            ; Move it to display string
+ 0000017E  E8 00000000 E	    call    WriteString
 				    
- 00000177  61			    popad
- 00000178  5D			    pop     EBP
- 00000179  C2 0010		    ret     16
- 0000017C			drawMap     ENDP
+ 00000183  61			    popad
+ 00000184  5D			    pop     EBP
+ 00000185  C2 0010		    ret     16
+ 00000188			drawMap     ENDP
 				;-------------------------------------------------------------------------------------
 
 
 				;-------------------------------------------------------------------------------------
- 0000017C			DrawInventory   PROC
+ 00000188			DrawInventory   PROC
 				;
 				;   
 				;
@@ -305,181 +303,179 @@ Microsoft (R) Macro Assembler Version 14.24.28316.0	    03/09/20 15:15:16
 				;   Return:
 				;-------------------------------------------------------------------------------------
 				    ; implement for-loop to loop through inventory items and print each one
- 0000017C  55			    push    ebp
- 0000017D  8B EC		    mov     ebp,    esp         ; preserve ebp
- 0000017F  8B 75 0C		    mov     esi,    [ebp+12]     ; address of inventory in esi; size of each element in the inventory * 3
- 00000182  8B 4D 08		    mov     ecx,    [ebp+8]     ; count in ecx
- 00000185			    forloop:
- 00000185  8B 06		        mov     eax,    [esi]    ; move the current element into the eax register
- 00000187  E8 00000000 E	        call    WriteString    ; write it out to the terminal
- 0000018C  E8 00000000 E	        call    Crlf        ; newline
- 00000191  83 C6 02		        add     esi,    2   ; increment the instruction pointer
- 00000194  E2 EF		        loop    forloop     ; loop
- 00000196  5D			    pop     ebp
- 00000197  C2 0008		    ret     8
- 0000019A			DrawInventory   ENDP
+ 00000188  55			    push    ebp
+ 00000189  8B EC		    mov     ebp,    esp         ; preserve ebp
+ 0000018B  8B 75 0C		    mov     esi,    [ebp+12]     ; address of inventory in esi; size of each element in the inventory * 3
+ 0000018E  8B 4D 08		    mov     ecx,    [ebp+8]     ; count in ecx
+ 00000191			    forloop:
+ 00000191  8B 06		        mov     eax,    [esi]    ; move the current element into the eax register
+ 00000193  E8 00000000 E	        call    WriteString    ; write it out to the terminal
+ 00000198  E8 00000000 E	        call    Crlf        ; newline
+ 0000019D  83 C6 02		        add     esi,    2   ; increment the instruction pointer
+ 000001A0  E2 EF		        loop    forloop     ; loop
+ 000001A2  5D			    pop     ebp
+ 000001A3  C2 0008		    ret     8
+ 000001A6			DrawInventory   ENDP
 				;-------------------------------------------------------------------------------------
 
 
 				;-------------------------------------------------------------------------------------
- 0000019A			KeyInput    PROC
+ 000001A6			KeyInput    PROC
 				;
 				;   Read Key Input and move character's coordination.
 				;       Return 1 to EAX if continuing, 0 if Exiting Game
 				;   Receive:    charX, charY
 				;   Return:     EAX
 				;-------------------------------------------------------------------------------------
- 0000019A			    KeyInputLoop:
- 0000019A  B8 0000000A		        mov     EAX, 10         ; Delay time
- 0000019F  E8 00000000 E	        call    Delay           ; Delay
- 000001A4  E8 00000000 E	        call    ReadKey         ; Read Key input
- 000001A9  74 EF		        jz      KeyInputLoop    ; Jump back to KeyInputLoop if there is no key input
+ 000001A6			    KeyInputLoop:
+ 000001A6  B8 0000000A		        mov     EAX, 10         ; Delay time
+ 000001AB  E8 00000000 E	        call    Delay           ; Delay
+ 000001B0  E8 00000000 E	        call    ReadKey         ; Read Key input
+ 000001B5  74 EF		        jz      KeyInputLoop    ; Jump back to KeyInputLoop if there is no key input
 
- 000001AB			    LeftKeyCheck:           
- 000001AB  66| 83 FA 25		        cmp     dx, VK_LEFT     ; Check if Left Arrow key is pressed
- 000001AF  75 1A		        jne     UpKeyCheck
- 000001B1  80 2D 00000C36 R	        sub     charX, 1        ; Move character one space to the left
+ 000001B7			    LeftKeyCheck:           
+ 000001B7  66| 83 FA 25		        cmp     dx, VK_LEFT     ; Check if Left Arrow key is pressed
+ 000001BB  75 1A		        jne     UpKeyCheck
+ 000001BD  80 2D 00000C2E R	        sub     charX, 1        ; Move character one space to the left
 	   01
 
- 000001B8  E8 0000008C		        call    checkWall
- 000001BD  83 F8 01		        cmp     EAX, 1
- 000001C0  75 7F		        jne     KeyInputEnd
- 000001C2  80 05 00000C36 R	        add     charX, 1
+ 000001C4  E8 00000085		        call    checkWall
+ 000001C9  83 F8 01		        cmp     EAX, 1
+ 000001CC  75 78		        jne     KeyInputEnd
+ 000001CE  80 05 00000C2E R	        add     charX, 1
 	   01
- 000001C9  EB 76		        jmp     KeyInputEnd
+ 000001D5  EB 6F		        jmp     KeyInputEnd
 
- 000001CB			    UpKeyCheck:
- 000001CB  66| 83 FA 26		        cmp     dx, VK_UP       ; Check if Up Arrow key is pressed
- 000001CF  75 1A		        jne     RightKeyCheck
- 000001D1  80 2D 00000C37 R	        sub     charY, 1        ; Move character one space up
-	   01
-
- 000001D8  E8 0000006C		        call    checkWall
- 000001DD  83 F8 01		        cmp     EAX, 1
- 000001E0  75 5F		        jne     KeyInputEnd
- 000001E2  80 05 00000C37 R	        add     charY, 1
-	   01
- 000001E9  EB 56		        jmp     KeyInputEnd
-
- 000001EB			    RightKeyCheck:
- 000001EB  66| 83 FA 27		        cmp     dx, VK_RIGHT    ; Check if Right Arrow key is pressed
- 000001EF  75 1A		        jne     DownKeyCheck
- 000001F1  80 05 00000C36 R	        add     charX, 1        ; Move character one space to the right
+ 000001D7			    UpKeyCheck:
+ 000001D7  66| 83 FA 26		        cmp     dx, VK_UP       ; Check if Up Arrow key is pressed
+ 000001DB  75 1A		        jne     RightKeyCheck
+ 000001DD  80 2D 00000C2F R	        sub     charY, 1        ; Move character one space up
 	   01
 
- 000001F8  E8 0000004C		        call    checkWall
- 000001FD  83 F8 01		        cmp     EAX, 1
- 00000200  75 3F		        jne     KeyInputEnd
- 00000202  80 2D 00000C36 R	        sub     charX, 1
+ 000001E4  E8 00000065		        call    checkWall
+ 000001E9  83 F8 01		        cmp     EAX, 1
+ 000001EC  75 58		        jne     KeyInputEnd
+ 000001EE  80 05 00000C2F R	        add     charY, 1
 	   01
- 00000209  EB 36		        jmp     KeyInputEnd
+ 000001F5  EB 4F		        jmp     KeyInputEnd
 
- 0000020B			    DownKeyCheck:
- 0000020B  66| 83 FA 28		        cmp     dx, VK_DOWN     ; Check if Down Arrow key is pressed
- 0000020F  75 1A		        jne     EscapeKeyCheck
- 00000211  80 05 00000C37 R	        add     charY, 1        ; Move character one space down
+ 000001F7			    RightKeyCheck:
+ 000001F7  66| 83 FA 27		        cmp     dx, VK_RIGHT    ; Check if Right Arrow key is pressed
+ 000001FB  75 1A		        jne     DownKeyCheck
+ 000001FD  80 05 00000C2E R	        add     charX, 1        ; Move character one space to the right
 	   01
 
- 00000218  E8 0000002C		        call    checkWall
- 0000021D  83 F8 01		        cmp     EAX, 1
- 00000220  75 1F		        jne     KeyInputEnd
- 00000222  80 2D 00000C37 R	        sub     charY, 1
+ 00000204  E8 00000045		        call    checkWall
+ 00000209  83 F8 01		        cmp     EAX, 1
+ 0000020C  75 38		        jne     KeyInputEnd
+ 0000020E  80 2D 00000C2E R	        sub     charX, 1
 	   01
- 00000229  EB 16		        jmp     KeyInputEnd
+ 00000215  EB 2F		        jmp     KeyInputEnd
 
- 0000022B			    EscapeKeyCheck:
- 0000022B  66| 83 FA 1B		        cmp     dx, VK_ESCAPE
- 0000022F  75 07		        jne     OtherKeyPressed
- 00000231  B8 00000000		        mov     EAX, 0          ; Set EAX to 0, signifying Exit
+ 00000217			    DownKeyCheck:
+ 00000217  66| 83 FA 28		        cmp     dx, VK_DOWN     ; Check if Down Arrow key is pressed
+ 0000021B  75 1A		        jne     EscapeKeyCheck
+ 0000021D  80 05 00000C2F R	        add     charY, 1        ; Move character one space down
+	   01
+
+ 00000224  E8 00000025		        call    checkWall
+ 00000229  83 F8 01		        cmp     EAX, 1
+ 0000022C  75 18		        jne     KeyInputEnd
+ 0000022E  80 2D 00000C2F R	        sub     charY, 1
+	   01
+ 00000235  EB 0F		        jmp     KeyInputEnd
+
+ 00000237			    EscapeKeyCheck:
+ 00000237  66| 83 FA 1B		        cmp     dx, VK_ESCAPE
+ 0000023B  75 07		        jne     OtherKeyPressed
+ 0000023D  B8 00000000		        mov     EAX, 0          ; Set EAX to 0, signifying Exit
 				                                ; Does not Flush, since the game will Exit
- 00000236  EB 0E		        jmp     EndInput
+ 00000242  EB 07		        jmp     EndInput
 
- 00000238			    OtherKeyPressed: 
- 00000238  83 05 00000C26 R	        add     curMapNum, 1
-	   01
- 0000023F  EB 00		        jmp     KeyInputEnd     ; Ignore invalid input
+ 00000244			    OtherKeyPressed: 
+ 00000244  EB 00		        jmp     KeyInputEnd     ; Ignore invalid input
 
- 00000241			    KeyInputEnd:                ; Move has been made
+ 00000246			    KeyInputEnd:                ; Move has been made
 				        INVOKE  ReadKeyFlush    ; Clear the current key
- 00000241  E8 00000000 E   *	    call   ReadKeyFlush
+ 00000246  E8 00000000 E   *	    call   ReadKeyFlush
 				                                ; Set EAX to 1, signifying Continue
 
- 00000246			    EndInput:
- 00000246  C2 0008		        ret     8
- 00000249			KeyInput    ENDP
+ 0000024B			    EndInput:
+ 0000024B  C2 0008		        ret     8
+ 0000024E			KeyInput    ENDP
 				;-------------------------------------------------------------------------------------
 
 
 				;-------------------------------------------------------------------------------------
- 00000249			checkWall PROC      
+ 0000024E			checkWall PROC      
 				;
 				;   Check if there is wall at the player's coordinate
 				;       Return 0 to EAX if there is no wall, 1 if exist
 				;   Receive:    curMap, BUFFER_SIZE, charX, charY
 				;   Return:     EAX
 				;-------------------------------------------------------------------------------------
- 00000249  55			    push    EBP
- 0000024A  8B EC		    mov     EBP, ESP
- 0000024C  60			    pushad
- 0000024D  8B 7D 10		    mov     EDI, [EBP+16]       ; @curMap
+ 0000024E  55			    push    EBP
+ 0000024F  8B EC		    mov     EBP, ESP
+ 00000251  60			    pushad
+ 00000252  8B 7D 10		    mov     EDI, [EBP+16]       ; @curMap
 
 
- 00000250  B8 00000000		    mov     EAX, 0              ; Reset EAX to 0
- 00000255  A0 00000C37 R	    mov     AL, charY           ; Move charY to AL
- 0000025A  8B C8		    mov     ECX, EAX            ; Move EAX to ECX : charY -> ECX
- 0000025C  83 F9 00		    cmp     ECX, 0              ; If ECX == 0, skips whole part
- 0000025F  74 0C		    je      L15
- 00000261  B0 0A		    mov     AL, 10              ; ASCII code for end of line 0a
+ 00000255  B8 00000000		    mov     EAX, 0              ; Reset EAX to 0
+ 0000025A  A0 00000C2F R	    mov     AL, charY           ; Move charY to AL
+ 0000025F  8B C8		    mov     ECX, EAX            ; Move EAX to ECX : charY -> ECX
+ 00000261  83 F9 00		    cmp     ECX, 0              ; If ECX == 0, skips whole part
+ 00000264  74 0C		    je      L15
+ 00000266  B0 0A		    mov     AL, 10              ; ASCII code for end of line 0a
 
- 00000263			L1:
- 00000263  51			    push    ECX                 ; Save ECX
- 00000264  8B 4D 0C		    mov     ECX, [EBP+12]       ; Buffer Size of ECX
- 00000267  FC			    cld
- 00000268  F2/ AE		    repne   scasb               ; Repeat until finding AL
- 0000026A  59			    pop     ECX                 ; Load ECX
- 0000026B  E2 F6		    loop    L1
+ 00000268			L1:
+ 00000268  51			    push    ECX                 ; Save ECX
+ 00000269  8B 4D 0C		    mov     ECX, [EBP+12]       ; Buffer Size of ECX
+ 0000026C  FC			    cld
+ 0000026D  F2/ AE		    repne   scasb               ; Repeat until finding AL
+ 0000026F  59			    pop     ECX                 ; Load ECX
+ 00000270  E2 F6		    loop    L1
 
- 0000026D			L15:
- 0000026D  B8 00000000		    mov     EAX, 0              ; Reset EAX
- 00000272  A0 00000C36 R	    mov     AL, charX           
- 00000277  8B C8		    mov     ECX, EAX            ; charX -> ECX
- 00000279  8B F7		    mov     ESI, EDI            ; @curMap from EDI to ESI
- 0000027B  83 F9 00		    cmp     ECX, 0              ; If charX == 0, skips whole part
- 0000027E  74 09		    je      L25
- 00000280  83 F9 01		    cmp     ECX, 1              ; If charX == 1, ESI does not decrease
- 00000283  74 01		    je      L2
- 00000285  4E			    dec     ESI
+ 00000272			L15:
+ 00000272  B8 00000000		    mov     EAX, 0              ; Reset EAX
+ 00000277  A0 00000C2E R	    mov     AL, charX           
+ 0000027C  8B C8		    mov     ECX, EAX            ; charX -> ECX
+ 0000027E  8B F7		    mov     ESI, EDI            ; @curMap from EDI to ESI
+ 00000280  83 F9 00		    cmp     ECX, 0              ; If charX == 0, skips whole part
+ 00000283  74 09		    je      L25
+ 00000285  83 F9 01		    cmp     ECX, 1              ; If charX == 1, ESI does not decrease
+ 00000288  74 01		    je      L2
+ 0000028A  4E			    dec     ESI
 
- 00000286			L2:
- 00000286  AC			    lodsb                       ; Load BYTE at ESI to EAX, increment ESI by 1.
- 00000287  E2 FD		    loop    L2
+ 0000028B			L2:
+ 0000028B  AC			    lodsb                       ; Load BYTE at ESI to EAX, increment ESI by 1.
+ 0000028C  E2 FD		    loop    L2
 				    
- 00000289			L25:
- 00000289  BF 00000C3C R	    mov     EDI, OFFSET sharp   ; Move @sharp to EDI
- 0000028E  A6			    cmpsb                       ; Compare value at ESI and EDI. If ESI has 23
- 0000028F  74 18		    je      L3
- 00000291  BF 00000C3A R	    mov     EDI, OFFSET endla   ; Move @endla to EDI
- 00000296  A6			    cmpsb                       ; Compare value at ESI and EDI. If ESI has 0a
- 00000297  74 10		    je      L3
- 00000299  BF 00000C3B R	    mov     EDI, OFFSET endld   ; Move @endld to EDI
- 0000029E  A6			    cmpsb                       ; Compare value at ESI and EDI. If ESI has 0d
- 0000029F  74 08		    je      L3
+ 0000028E			L25:
+ 0000028E  BF 00000C34 R	    mov     EDI, OFFSET sharp   ; Move @sharp to EDI
+ 00000293  A6			    cmpsb                       ; Compare value at ESI and EDI. If ESI has 23
+ 00000294  74 18		    je      L3
+ 00000296  BF 00000C32 R	    mov     EDI, OFFSET endla   ; Move @endla to EDI
+ 0000029B  A6			    cmpsb                       ; Compare value at ESI and EDI. If ESI has 0a
+ 0000029C  74 10		    je      L3
+ 0000029E  BF 00000C33 R	    mov     EDI, OFFSET endld   ; Move @endld to EDI
+ 000002A3  A6			    cmpsb                       ; Compare value at ESI and EDI. If ESI has 0d
+ 000002A4  74 08		    je      L3
 
- 000002A1  61			    popad
- 000002A2  B8 00000000		    mov     EAX, 0              ; The wall or 0a, 0d does not exist at coordinate
- 000002A7  EB 06		    jmp     L4
+ 000002A6  61			    popad
+ 000002A7  B8 00000000		    mov     EAX, 0              ; The wall or 0a, 0d does not exist at coordinate
+ 000002AC  EB 06		    jmp     L4
 
- 000002A9			L3:
- 000002A9  61			    popad
- 000002AA  B8 00000001		    mov     EAX, 1              ; The wall or 0a, 0d exist at coordinate
- 000002AF			L4:
- 000002AF  5D			    pop     EBP
- 000002B0  C3			    ret     
- 000002B1			checkWall ENDP
+ 000002AE			L3:
+ 000002AE  61			    popad
+ 000002AF  B8 00000001		    mov     EAX, 1              ; The wall or 0a, 0d exist at coordinate
+ 000002B4			L4:
+ 000002B4  5D			    pop     EBP
+ 000002B5  C3			    ret     
+ 000002B6			checkWall ENDP
 				;-------------------------------------------------------------------------------------
 
 				END main
-Microsoft (R) Macro Assembler Version 14.24.28316.0	    03/09/20 15:15:16
+Microsoft (R) Macro Assembler Version 14.24.28316.0	    03/09/20 15:23:33
 %gamedev     (CS271_final_gamedev.asm			     Symbols 2 - 1
 
 
@@ -591,8 +587,8 @@ Segments and Groups:
 
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
-_DATA  . . . . . . . . . . . . .	32 Bit	 00000C7A Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 000002B1 Para	  Public  'CODE'	
+_DATA  . . . . . . . . . . . . .	32 Bit	 00000C72 Para	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 000002B6 Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
@@ -606,8 +602,8 @@ CreateFileA  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 CreateOutputFile . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Crlf . . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Delay  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-DrawInventory  . . . . . . . . .	P Near	 0000017C _TEXT	Length= 0000001E Public STDCALL
-  forloop  . . . . . . . . . . .	L Near	 00000185 _TEXT	
+DrawInventory  . . . . . . . . .	P Near	 00000188 _TEXT	Length= 0000001E Public STDCALL
+  forloop  . . . . . . . . . . .	L Near	 00000191 _TEXT	
 DumpMem  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 DumpRegs . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ExitProcess  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -641,16 +637,16 @@ HeapDestroy  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 HeapFree . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 HeapSize . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 IsDigit  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-KeyInput . . . . . . . . . . . .	P Near	 0000019A _TEXT	Length= 000000AF Public STDCALL
-  KeyInputLoop . . . . . . . . .	L Near	 0000019A _TEXT	
-  LeftKeyCheck . . . . . . . . .	L Near	 000001AB _TEXT	
-  UpKeyCheck . . . . . . . . . .	L Near	 000001CB _TEXT	
-  RightKeyCheck  . . . . . . . .	L Near	 000001EB _TEXT	
-  DownKeyCheck . . . . . . . . .	L Near	 0000020B _TEXT	
-  EscapeKeyCheck . . . . . . . .	L Near	 0000022B _TEXT	
-  OtherKeyPressed  . . . . . . .	L Near	 00000238 _TEXT	
-  KeyInputEnd  . . . . . . . . .	L Near	 00000241 _TEXT	
-  EndInput . . . . . . . . . . .	L Near	 00000246 _TEXT	
+KeyInput . . . . . . . . . . . .	P Near	 000001A6 _TEXT	Length= 000000A8 Public STDCALL
+  KeyInputLoop . . . . . . . . .	L Near	 000001A6 _TEXT	
+  LeftKeyCheck . . . . . . . . .	L Near	 000001B7 _TEXT	
+  UpKeyCheck . . . . . . . . . .	L Near	 000001D7 _TEXT	
+  RightKeyCheck  . . . . . . . .	L Near	 000001F7 _TEXT	
+  DownKeyCheck . . . . . . . . .	L Near	 00000217 _TEXT	
+  EscapeKeyCheck . . . . . . . .	L Near	 00000237 _TEXT	
+  OtherKeyPressed  . . . . . . .	L Near	 00000244 _TEXT	
+  KeyInputEnd  . . . . . . . . .	L Near	 00000246 _TEXT	
+  EndInput . . . . . . . . . . .	L Near	 0000024B _TEXT	
 LocalFree  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 MessageBoxA  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 MsgBoxAsk  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -711,32 +707,32 @@ WriteStackFrame  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 WriteString  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteToFile  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteWindowsMsg  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-checkWall  . . . . . . . . . . .	P Near	 00000249 _TEXT	Length= 00000068 Public STDCALL
-  L1 . . . . . . . . . . . . . .	L Near	 00000263 _TEXT	
-  L15  . . . . . . . . . . . . .	L Near	 0000026D _TEXT	
-  L2 . . . . . . . . . . . . . .	L Near	 00000286 _TEXT	
-  L25  . . . . . . . . . . . . .	L Near	 00000289 _TEXT	
-  L3 . . . . . . . . . . . . . .	L Near	 000002A9 _TEXT	
-  L4 . . . . . . . . . . . . . .	L Near	 000002AF _TEXT	
-drawMap  . . . . . . . . . . . .	P Near	 00000140 _TEXT	Length= 0000003C Public STDCALL
-  L1 . . . . . . . . . . . . . .	L Near	 00000161 _TEXT	
-main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 000000BD Public STDCALL
+checkWall  . . . . . . . . . . .	P Near	 0000024E _TEXT	Length= 00000068 Public STDCALL
+  L1 . . . . . . . . . . . . . .	L Near	 00000268 _TEXT	
+  L15  . . . . . . . . . . . . .	L Near	 00000272 _TEXT	
+  L2 . . . . . . . . . . . . . .	L Near	 0000028B _TEXT	
+  L25  . . . . . . . . . . . . .	L Near	 0000028E _TEXT	
+  L3 . . . . . . . . . . . . . .	L Near	 000002AE _TEXT	
+  L4 . . . . . . . . . . . . . .	L Near	 000002B4 _TEXT	
+drawMap  . . . . . . . . . . . .	P Near	 0000014C _TEXT	Length= 0000003C Public STDCALL
+  L1 . . . . . . . . . . . . . .	L Near	 0000016D _TEXT	
+main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 000000C9 Public STDCALL
   Setup  . . . . . . . . . . . .	L Near	 00000000 _TEXT	
   GameLoop . . . . . . . . . . .	L Near	 00000053 _TEXT	
   DrawBackground . . . . . . . .	L Near	 00000053 _TEXT	
   DrawCharacter  . . . . . . . .	L Near	 00000076 _TEXT	
   DrawInv  . . . . . . . . . . .	L Near	 000000A0 _TEXT	
-  Key  . . . . . . . . . . . . .	L Near	 000000A0 _TEXT	
-  GameExit . . . . . . . . . . .	L Near	 000000B6 _TEXT	
+  Key  . . . . . . . . . . . . .	L Near	 000000AC _TEXT	
+  GameExit . . . . . . . . . . .	L Near	 000000C2 _TEXT	
 printf . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
-readMap  . . . . . . . . . . . .	P Near	 000000BD _TEXT	Length= 00000083 Public STDCALL
-  ReadMapFromFile  . . . . . . .	L Near	 000000CF _TEXT	
-  FileIO . . . . . . . . . . . .	L Near	 000000D0 _TEXT	
-  fileOpened . . . . . . . . . .	L Near	 000000E8 _TEXT	
-  checkBufferSize  . . . . . . .	L Near	 00000102 _TEXT	
-  bufferSizeOK . . . . . . . . .	L Near	 0000010E _TEXT	
-  fileClose  . . . . . . . . . .	L Near	 00000124 _TEXT	
-  EndReading . . . . . . . . . .	L Near	 0000013C _TEXT	
+readMap  . . . . . . . . . . . .	P Near	 000000C9 _TEXT	Length= 00000083 Public STDCALL
+  ReadMapFromFile  . . . . . . .	L Near	 000000DB _TEXT	
+  FileIO . . . . . . . . . . . .	L Near	 000000DC _TEXT	
+  fileOpened . . . . . . . . . .	L Near	 000000F4 _TEXT	
+  checkBufferSize  . . . . . . .	L Near	 0000010E _TEXT	
+  bufferSizeOK . . . . . . . . .	L Near	 0000011A _TEXT	
+  fileClose  . . . . . . . . . .	L Near	 00000130 _TEXT	
+  EndReading . . . . . . . . . .	L Near	 00000148 _TEXT	
 scanf  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 wsprintfA  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 
@@ -745,8 +741,8 @@ Symbols:
 
                 N a m e                 Type     Value    Attr
 
-??0000 . . . . . . . . . . . . .	Byte	 00000C57 _DATA	
-??0001 . . . . . . . . . . . . .	Byte	 00000C6E _DATA	
+??0000 . . . . . . . . . . . . .	Byte	 00000C4F _DATA	
+??0001 . . . . . . . . . . . . .	Byte	 00000C66 _DATA	
 @CodeSize  . . . . . . . . . . .	Number	 00000000h   
 @DataSize  . . . . . . . . . . .	Number	 00000000h   
 @Interface . . . . . . . . . . .	Number	 00000003h   
@@ -961,29 +957,27 @@ WriteConsole . . . . . . . . . .	Text   	 WriteConsoleA
 black  . . . . . . . . . . . . .	Number	 00000000h   
 blue . . . . . . . . . . . . . .	Number	 00000001h   
 brown  . . . . . . . . . . . . .	Number	 00000006h   
-bytesWritten . . . . . . . . . .	DWord	 00000C53 _DATA	
-charX  . . . . . . . . . . . . .	Byte	 00000C36 _DATA	
-charY  . . . . . . . . . . . . .	Byte	 00000C37 _DATA	
-char . . . . . . . . . . . . . .	Byte	 00000C38 _DATA	
+bytesWritten . . . . . . . . . .	DWord	 00000C4B _DATA	
+charX  . . . . . . . . . . . . .	Byte	 00000C2E _DATA	
+charY  . . . . . . . . . . . . .	Byte	 00000C2F _DATA	
+char . . . . . . . . . . . . . .	Byte	 00000C30 _DATA	
 consoleCursor  . . . . . . . . .	CONSOLE_CURSOR_INFO  00000016 _DATA	
-consoleHandle  . . . . . . . . .	DWord	 00000C4F _DATA	
+consoleHandle  . . . . . . . . .	DWord	 00000C47 _DATA	
 consoleSize  . . . . . . . . . .	SMALL_RECT  0000000E _DATA	
-curMapNum  . . . . . . . . . . .	DWord	 00000C26 _DATA	
-curMap . . . . . . . . . . . . .	Byte	 00000A26 _DATA	
+curMapNum  . . . . . . . . . . .	DWord	 00000C1E _DATA	
+curMap . . . . . . . . . . . . .	Byte	 00000A1E _DATA	
 cyan . . . . . . . . . . . . . .	Number	 00000003h   
-endla  . . . . . . . . . . . . .	Byte	 00000C3A _DATA	
-endld  . . . . . . . . . . . . .	Byte	 00000C3B _DATA	
+endla  . . . . . . . . . . . . .	Byte	 00000C32 _DATA	
+endld  . . . . . . . . . . . . .	Byte	 00000C33 _DATA	
 endl . . . . . . . . . . . . . .	Text   	 0dh, 0ah
 exit . . . . . . . . . . . . . .	Text   	 INVOKE ExitProcess,0
 fileBuffer . . . . . . . . . . .	Byte	 0000001E _DATA	
-fileHandle . . . . . . . . . . .	DWord	 00000C32 _DATA	
-fileName . . . . . . . . . . . .	DWord	 00000C2A _DATA	
-fileX  . . . . . . . . . . . . .	DWord	 00000A1E _DATA	
-fileY  . . . . . . . . . . . . .	DWord	 00000A22 _DATA	
+fileHandle . . . . . . . . . . .	DWord	 00000C2A _DATA	
+fileName . . . . . . . . . . . .	DWord	 00000C22 _DATA	
 gameTitle  . . . . . . . . . . .	Byte	 00000000 _DATA	
 gray . . . . . . . . . . . . . .	Number	 00000008h   
 green  . . . . . . . . . . . . .	Number	 00000002h   
-inventory  . . . . . . . . . . .	Byte	 00000C3D _DATA	
+inventory  . . . . . . . . . . .	Byte	 00000C35 _DATA	
 lightBlue  . . . . . . . . . . .	Number	 00000009h   
 lightCyan  . . . . . . . . . . .	Number	 0000000Bh   
 lightGray  . . . . . . . . . . .	Number	 00000007h   
@@ -992,8 +986,8 @@ lightMagenta . . . . . . . . . .	Number	 0000000Dh
 lightRed . . . . . . . . . . . .	Number	 0000000Ch   
 magenta  . . . . . . . . . . . .	Number	 00000005h   
 red  . . . . . . . . . . . . . .	Number	 00000004h   
-sharp  . . . . . . . . . . . . .	Byte	 00000C3C _DATA	
-spaces . . . . . . . . . . . . .	DWord	 00000C47 _DATA	
+sharp  . . . . . . . . . . . . .	Byte	 00000C34 _DATA	
+spaces . . . . . . . . . . . . .	DWord	 00000C3F _DATA	
 white  . . . . . . . . . . . . .	Number	 0000000Fh   
 wsprintf . . . . . . . . . . . .	Text   	 wsprintfA
 yellow . . . . . . . . . . . . .	Number	 0000000Eh   
