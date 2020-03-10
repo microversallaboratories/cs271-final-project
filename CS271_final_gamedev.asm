@@ -47,13 +47,26 @@ bytesWritten DWORD ?
 DrawSpaces 	PROC 
 DrawSpaces 	ENDP 
 
+
+;-------------------------------------------------------------------------------------
 DrawHorizLine	PROC 
+;
+;   Print a horizontal line to the terminal
+;   Receive:    hline
+;   Return:     none
+;------------------------------------------------------------------------------------- 
         mov     EDX,    OFFSET  hline 	; load the hline variable
         call    WriteString 		; write the line
         call    Crlf			; write newline
 DrawHorizLine 	ENDP
 
+;-------------------------------------------------------------------------------------
 DrawInventory   PROC
+;
+;   Draw the user inventory as a horizontal array 
+;   Receive:    OFFSET list, LENGTHOF list
+;   Return:     none
+;------------------------------------------------------------------------------------- 
     pushad
     mov DL, 0
     mov DH, 10
@@ -83,14 +96,37 @@ DrawInventory   PROC
     ret 8
 DrawInventory   ENDP
 
+
+;-------------------------------------------------------------------------------------
 PickUpItem  PROC
-    cmp     charX,  charY                  ; check if coordinate of the character equals that of the key
-    ; if so,
-        ; add the key to the player's inventory
-        ; remove it from the map
+;
+;   Grab an item below the user, and add to the their inventory
+;   Receive:    charX, charY, keyX, keyY, inventory
+;   Return:     changed keyX, keyY, and inventory
+;------------------------------------------------------------------------------------- 
+chkX:    
+    mov     al, charX
+    cmp     al,  keyX                  
+    jne     notsame
+chkY:
+    mov     al, charY
+    cmp     al,  keyY
+    jne     notsame
+                                    ; if same x and y coordinates,
+    mov     inventory[0],  key         ; add the key to the player's inventory
+                                    ; remove it from the map
+
+    notsame:
+    ret
 PickUpItem  ENDP
 
+;-------------------------------------------------------------------------------------
 UnlockDoor  PROC
+;
+;   Apply a key (if in the inventory) to unlock the door
+;   Receive:    charX, charY, stairX, stairY, inventory
+;   Return:     changed inventory, changed map
+;------------------------------------------------------------------------------------- 
     ; if coordinate of the player equals that of the stair,
         ; if the player has the key in their inventory, (first item)
             ; inc curMapNum
@@ -161,7 +197,14 @@ DrawBackground:
     mov EDX, OFFSET fileBuffer
     call WriteString    
 
+
+;-------------------------------------------------------------------------------------
 DrawKey:
+;
+;   Draw the key on the map
+;   Receive:    keyX, keyY
+;   Return:     printed key
+;------------------------------------------------------------------------------------- 
     mov DL, keyX            ; X-coordinate
     mov DH, keyY            ; Y-coordinate
     call    Gotoxy          ; locate cursor
@@ -173,7 +216,13 @@ DrawKey:
         ADDR    bytesWritten, 
         0
 
+;-------------------------------------------------------------------------------------
 DrawStair:
+;
+;   Draw the staircase on the map
+;   Receive:    stairX, stairY
+;   Return:     printed staircase
+;------------------------------------------------------------------------------------- 
     mov DL, stairX            ; X-coordinate
     mov DH, stairY            ; Y-coordinate
     call    Gotoxy          ; locate cursor
