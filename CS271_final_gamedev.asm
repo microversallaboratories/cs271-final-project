@@ -23,14 +23,20 @@ fileY       DWORD 10
 fileName    BYTE "map1.txt", 0
 fileHandle  HANDLE ?
 
-charX       BYTE    10                                 ; Size of DL: 1 byte - starting xpos
-charY       BYTE    6                                  ; Size of DH: 1 byte - starting ypos
-char        BYTE    "@", 0                             ; Character
-sharp       BYTE    "#", 0                             ; Sharp
-inventory   BYTE    10 DUP(?)                          ; Inventory; arr of chars
-spaces      DWORD    "  ",0                              ; double space for inventory formatting
-hline 		DWORD	"----------------",0		; line to separate inventory
-inventtitle	DWORD 	"INVENTORY:",0			; inventory title
+charX       BYTE    10                                  ; Size of DL: 1 byte - starting xpos
+charY       BYTE    6                                   ; Size of DH: 1 byte - starting ypos
+char        BYTE    "@", 0                              ; Character
+keyX        BYTE    2                                   ; Starting key xposition
+keyY        BYTE    6                                   ; Starting key yposition
+key         BYTE    "k", 0                              ; Key
+stairX      BYTE    15                                   ; Starting stair xposition
+stairY      BYTE    2                                   ; Starting stair yposition
+stair       BYTE    "S", 0                              ; Stair
+sharp       BYTE    "#", 0                              ; Sharp
+inventory   BYTE    10 DUP(?)                           ; Inventory; arr of chars
+spaces      DWORD   ' ', 0                              ; double space for inventory formatting
+hline 		BYTE	"----------------", 0		        ; line to separate inventory
+inventtitle	BYTE 	"INVENTORY", 0			            ; inventory title
 
 
 consoleHandle HANDLE 0
@@ -39,8 +45,6 @@ bytesWritten DWORD ?
 .code
 
 DrawSpaces 	PROC 
-	mov 	EDX,	OFFSET 	spaces 	; move doublespace character into edx
-	call 	WriteString 		; write the doublespace
 DrawSpaces 	ENDP 
 
 DrawHorizLine	PROC 
@@ -50,16 +54,18 @@ DrawHorizLine	PROC
 DrawHorizLine 	ENDP
 
 DrawInventory   PROC
+    pushad
     mov DL, 0
-    mov DH, 25
+    mov DH, 10
     call Gotoxy
-	
-	call 	DrawHorizLine 	
-        mov     EDX,    OFFSET  inventtitle 		; ask if they'd like to make another calculation
-        call    WriteString				; draw inventory title
-        call    Crlf
-	call 	DrawHorizLine
+	call    Crlf
+	; call 	DrawHorizLine 	
+    mov     EDX,    OFFSET  inventtitle 		; ask if they'd like to make another calculation
+    call    WriteString				; draw inventory title
+    call    Crlf
+    ; call 	DrawHorizLine
 	call 	Crlf
+    popad
 
 	; implement for-loop to loop through inventory items and print each one
     push    ebp
@@ -69,7 +75,7 @@ DrawInventory   PROC
     forloop:
         mov eax,    [esi]    ; move the current element into the eax register
         call    WriteString    ; write it out to the terminal
-        call    DrawSpaces        ; newline
+        ; call    DrawSpaces
         add     esi,    2   ; increment the instruction pointer
         loop    forloop     ; loop
     pop ebp
@@ -136,10 +142,34 @@ DrawBackground:
     ; Don't call Clrscr, as it is slow
     mov DL, 0
     mov DH, 0
-    call Gotoxy
+    call Gotoxy             ; Move starting cursor to (0,0)
 
     mov EDX, OFFSET fileBuffer
     call WriteString    
+
+DrawKey:
+    mov DL, keyX            ; X-coordinate
+    mov DH, keyY            ; Y-coordinate
+    call    Gotoxy          ; locate cursor
+
+    INVOKE  WriteConsole,     ; Write character 'k'
+        consoleHandle,
+        ADDR    key,
+        1,
+        ADDR    bytesWritten, 
+        0
+
+DrawStair:
+    mov DL, stairX            ; X-coordinate
+    mov DH, stairY            ; Y-coordinate
+    call    Gotoxy          ; locate cursor
+
+    INVOKE  WriteConsole,     ; Write character 'S'
+        consoleHandle,
+        ADDR    stair,
+        1,
+        ADDR    bytesWritten, 
+        0
 
 DrawCharacter:
     mov DL, charX           ; X-Coordinate
