@@ -84,7 +84,7 @@ DrawInventory   PROC
 DrawInventory   ENDP
 
 PickUpItem  PROC
-    ; check if coordinate of the character equals that of the key
+    cmp     charX,  charY                  ; check if coordinate of the character equals that of the key
     ; if so,
         ; add the key to the player's inventory
         ; remove it from the map
