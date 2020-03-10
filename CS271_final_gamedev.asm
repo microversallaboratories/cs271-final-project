@@ -29,14 +29,15 @@ char        BYTE    "@", 0                              ; Character
 keyX        BYTE    2                                   ; Starting key xposition
 keyY        BYTE    6                                   ; Starting key yposition
 key         BYTE    "k", 0                              ; Key
-stairX      BYTE    15                                   ; Starting stair xposition
+stairX      BYTE    15                                  ; Starting stair xposition
 stairY      BYTE    2                                   ; Starting stair yposition
 stair       BYTE    "S", 0                              ; Stair
 sharp       BYTE    "#", 0                              ; Sharp
 inventory   BYTE    10 DUP(?)                           ; Inventory; arr of chars
-spaces      DWORD   ' ', 0                              ; double space for inventory formatting
-hline 		BYTE	"----------------", 0		        ; line to separate inventory
-inventtitle	BYTE 	"INVENTORY", 0			            ; inventory title
+spaces      DWORD   ' ', 0                              ; Double space for inventory formatting
+hline 		BYTE	"----------------", 0		        ; Line to separate inventory
+inventtitle	BYTE 	"INVENTORY", 0			            ; Inventory title
+curMapNum   BYTE    1                                   ; Current map number
 
 
 consoleHandle HANDLE 0
@@ -106,17 +107,16 @@ PickUpItem  PROC
 ;------------------------------------------------------------------------------------- 
 chkX:    
     mov     al, charX
-    cmp     al,  keyX                  
+    cmp     al,  keyX               ; if X coordinates match,
     jne     notsame
 chkY:
     mov     al, charY
-    cmp     al,  keyY
+    cmp     al,  keyY               ; and if Y coordinates also match,
     jne     notsame
                                     ; if same x and y coordinates,
     mov     inventory[0],  key         ; add the key to the player's inventory
-                                    ; remove it from the map
 
-    notsame:
+    notsame:                        ; else do nothing
     ret
 PickUpItem  ENDP
 
@@ -127,10 +127,27 @@ UnlockDoor  PROC
 ;   Receive:    charX, charY, stairX, stairY, inventory
 ;   Return:     changed inventory, changed map
 ;------------------------------------------------------------------------------------- 
-    ; if coordinate of the player equals that of the stair,
-        ; if the player has the key in their inventory, (first item)
-            ; inc curMapNum
-            ; set inventory item equal to "?"
+                                        ; if coordinate of the player equals that of the stair,
+chkX:    
+    mov     al, charX
+    cmp     al, stairX                  ; if X-coordinate matches,
+    jne     notsame
+chkY:
+    mov     al, charY
+    cmp     al, stairY                  ; and if Y-coordinate matches,
+    jne     notsame
+                                        ; if same x and y coordinates,
+chkKey:                                 ; If the player has the key,
+    mov     al, key
+    cmp     inventory[0],  key          ; if the key is in the first inventory position,
+    jne     notsame
+    ; else, if at correct X and Y, and player has the key,
+    mov     inventory[0],  "?"          ; remove the key from the player's inventory
+    inc     curMapNum                   ; move to the next map
+
+notsame:                                ; else do nothing
+    ret
+
 UnlockDoor  ENDP
 
 ; ###########MAIN###########
@@ -197,6 +214,14 @@ DrawBackground:
     mov EDX, OFFSET fileBuffer
     call WriteString    
 
+
+pushad
+call    PickUpItem
+popad
+
+pushad
+call    UnlockDoor
+popad
 
 ;-------------------------------------------------------------------------------------
 DrawKey:
