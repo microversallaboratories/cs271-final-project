@@ -27,7 +27,7 @@ charY       BYTE    1                               ; Size of DH: 1 byte - start
 char        BYTE    "@", 0                          ; Character
 keyX        BYTE    2                                   ; Starting key xposition
 keyY        BYTE    6                                   ; Starting key yposition
-key         BYTE    "k", 0                              ; Key
+keysymbol   BYTE    "k", 0                              ; Key
 stairX      BYTE    15                                  ; Starting stair xposition
 stairY      BYTE    2                                   ; Starting stair yposition
 stair       BYTE    "S", 0                              ; Stair
@@ -38,7 +38,6 @@ inventory   BYTE    10 DUP(?)                       ; Inventory; arr of chars
 spaces      DWORD   ' ',0                          ; double space for inventory formatting
 hline 		BYTE	"----------------", 0		        ; Line to separate inventory
 inventtitle	BYTE 	"INVENTORY", 0			            ; Inventory title
-curMapNum   BYTE    1                                   ; Current map number
 
 consoleHandle HANDLE 0
 bytesWritten DWORD ?
@@ -58,42 +57,6 @@ DrawHorizLine	PROC
 DrawHorizLine 	ENDP
 
 ;-------------------------------------------------------------------------------------
-DrawInventory   PROC
-;
-;   Draw the user inventory as a horizontal array 
-;   Receive:    OFFSET list, LENGTHOF list
-;   Return:     none
-;------------------------------------------------------------------------------------- 
-    pushad
-    mov DL, 0
-    mov DH, 10
-    call Gotoxy
-	call    Crlf
-	; call 	DrawHorizLine 	
-    mov     EDX,    OFFSET  inventtitle 		; ask if they'd like to make another calculation
-    call    WriteString				; draw inventory title
-    call    Crlf
-    ; call 	DrawHorizLine
-	call 	Crlf
-    popad
-
-	; implement for-loop to loop through inventory items and print each one
-    push    ebp
-    mov ebp,    esp         ; preserve ebp
-    mov esi,    [ebp+12]     ; address of inventory in esi; size of each element in the inventory * 3
-    mov ecx,    [ebp+8]     ; count in ecx
-    forloop:
-        mov eax,    [esi]    ; move the current element into the eax register
-        call    WriteString    ; write it out to the terminal
-        ; call    DrawSpaces
-        add     esi,    2   ; increment the instruction pointer
-        loop    forloop     ; loop
-    pop ebp
-	call 	Crlf
-    ret 8
-DrawInventory   ENDP
-
-;-------------------------------------------------------------------------------------
 PickUpItem  PROC
 ;
 ;   Grab an item below the user, and add to the their inventory
@@ -109,7 +72,7 @@ chkY:
     cmp     al,  keyY               ; and if Y coordinates also match,
     jne     notsame
                                     ; if same x and y coordinates,
-    mov     al, key
+    mov     al, keysymbol
     mov     [inventory],    al      ; add the key to the player's inventory
 
     notsame:                        ; else do nothing
@@ -134,7 +97,7 @@ chkY:
     jne     notsame
                                         ; if same x and y coordinates,
 chkKey:                                 ; If the player has the key,
-    mov     al, key
+    mov     al, keysymbol
     cmp     al,  [inventory]          ; if the key is in the first inventory position,
     jne     notsame
     ; else, if at correct X and Y, and player has the key,
@@ -213,7 +176,7 @@ DrawKey:
 
     INVOKE  WriteConsole,     ; Write character 'k'
         consoleHandle,
-        ADDR    key,
+        ADDR    keysymbol,
         1,
         ADDR    bytesWritten, 
         0
@@ -380,24 +343,37 @@ drawMap     ENDP
 ;-------------------------------------------------------------------------------------
 DrawInventory   PROC
 ;
-;   
-;
-;   Receive:
-;   Return:
-;-------------------------------------------------------------------------------------
-    ; implement for-loop to loop through inventory items and print each one
+;   Draw the user inventory as a horizontal array 
+;   Receive:    OFFSET list, LENGTHOF list
+;   Return:     none
+;------------------------------------------------------------------------------------- 
+    pushad
+    mov DL, 0
+    mov DH, 10
+    call Gotoxy
+	call    Crlf
+	; call 	DrawHorizLine 	
+    mov     EDX,    OFFSET  inventtitle 		; ask if they'd like to make another calculation
+    call    WriteString				; draw inventory title
+    call    Crlf
+    ; call 	DrawHorizLine
+	call 	Crlf
+    popad
+
+	; implement for-loop to loop through inventory items and print each one
     push    ebp
-    mov     ebp,    esp         ; preserve ebp
-    mov     esi,    [ebp+12]     ; address of inventory in esi; size of each element in the inventory * 3
-    mov     ecx,    [ebp+8]     ; count in ecx
+    mov ebp,    esp         ; preserve ebp
+    mov esi,    [ebp+12]     ; address of inventory in esi; size of each element in the inventory * 3
+    mov ecx,    [ebp+8]     ; count in ecx
     forloop:
-        mov     eax,    [esi]    ; move the current element into the eax register
+        mov eax,    [esi]    ; move the current element into the eax register
         call    WriteString    ; write it out to the terminal
-        call    Crlf        ; newline
+        ; call    DrawSpaces
         add     esi,    2   ; increment the instruction pointer
         loop    forloop     ; loop
-    pop     ebp
-    ret     8
+    pop ebp
+	call 	Crlf
+    ret 8
 DrawInventory   ENDP
 ;-------------------------------------------------------------------------------------
 
