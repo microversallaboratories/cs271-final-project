@@ -55,6 +55,7 @@ DrawHorizLine	PROC
         call    WriteString 		; write the line
         call    Crlf			; write newline
 DrawHorizLine 	ENDP
+;------------------------------------------------------------------------------------- 
 
 ;-------------------------------------------------------------------------------------
 PickUpItem  PROC
@@ -78,6 +79,7 @@ chkY:
     notsame:                        ; else do nothing
     ret
 PickUpItem  ENDP
+;------------------------------------------------------------------------------------- 
 
 ;-------------------------------------------------------------------------------------
 UnlockDoor  PROC
@@ -108,9 +110,7 @@ notsame:                                ; else do nothing
     ret
 
 UnlockDoor  ENDP
-
-
-
+;------------------------------------------------------------------------------------- 
 
 
 main PROC
@@ -180,6 +180,7 @@ DrawKey:
         1,
         ADDR    bytesWritten, 
         0
+;------------------------------------------------------------------------------------- 
 
 ;-------------------------------------------------------------------------------------
 DrawStair:
@@ -198,8 +199,15 @@ DrawStair:
         1,
         ADDR    bytesWritten, 
         0
+;------------------------------------------------------------------------------------- 
 
+;-------------------------------------------------------------------------------------
 DrawCharacter:
+;
+;   Draw the character on the map
+;   Receive:    charX, charY
+;   Return:     printed character
+;------------------------------------------------------------------------------------- 
     mov     DL, charX           ; X-Coordinate
     mov     DH, charY           ; Y-Coordinate
     call    Gotoxy              ; locate Cursor
@@ -210,11 +218,19 @@ DrawCharacter:
         1,
         ADDR bytesWritten,
         0
+;------------------------------------------------------------------------------------- 
 
-DrawInv:
-    push    OFFSET inventory    ; push inventory offset into stack
-    push    LENGTHOF inventory  ; push count into stack
-    call    DrawInventory       ; Draw the inventory
+;-------------------------------------------------------------------------------------
+; DrawInv:
+;
+;   Draw the inventory below the map
+;   Receive:    inventory, lengthof inventory
+;   Return:     printed inventory
+;------------------------------------------------------------------------------------- 
+;    push    OFFSET inventory    ; push inventory offset into stack
+;    push    LENGTHOF inventory  ; push count into stack
+;    call    DrawInventory       ; Draw the inventory
+;------------------------------------------------------------------------------------- 
 
 Key:
     push    OFFSET curMap       ; Put @curMap to stack as reference
