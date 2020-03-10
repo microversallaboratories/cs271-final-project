@@ -39,22 +39,17 @@ bytesWritten DWORD ?
 .code
 
 DrawSpaces 	PROC 
-
 	mov 	EDX,	OFFSET 	spaces 	; move doublespace character into edx
 	call 	WriteString 		; write the doublespace
-
 DrawSpaces 	ENDP 
 
-DrawHorizLine	PROC
-
+DrawHorizLine	PROC 
         mov     EDX,    OFFSET  hline 	; load the hline variable
         call    WriteString 		; write the line
         call    Crlf			; write newline
-
 DrawHorizLine 	ENDP
 
 DrawInventory   PROC
-    
     mov DL, 0
     mov DH, 25
     call Gotoxy
@@ -74,10 +69,11 @@ DrawInventory   PROC
     forloop:
         mov eax,    [esi]    ; move the current element into the eax register
         call    WriteString    ; write it out to the terminal
-        call    Crlf        ; newline
+        call    DrawSpaces        ; newline
         add     esi,    2   ; increment the instruction pointer
         loop    forloop     ; loop
     pop ebp
+	call 	Crlf
     ret 8
 DrawInventory   ENDP
 
