@@ -114,7 +114,8 @@ chkY:
     cmp     al,  keyY               ; and if Y coordinates also match,
     jne     notsame
                                     ; if same x and y coordinates,
-    mov     inventory[0],  key         ; add the key to the player's inventory
+    mov     al, key
+    mov     [inventory],    al      ; add the key to the player's inventory
 
     notsame:                        ; else do nothing
     ret
@@ -139,10 +140,10 @@ chkY:
                                         ; if same x and y coordinates,
 chkKey:                                 ; If the player has the key,
     mov     al, key
-    cmp     inventory[0],  key          ; if the key is in the first inventory position,
+    cmp     al,  [inventory]          ; if the key is in the first inventory position,
     jne     notsame
     ; else, if at correct X and Y, and player has the key,
-    mov     inventory[0],  "?"          ; remove the key from the player's inventory
+    mov     [inventory],  "?"          ; remove the key from the player's inventory
     inc     curMapNum                   ; move to the next map
 
 notsame:                                ; else do nothing
@@ -216,11 +217,13 @@ DrawBackground:
 
 
 pushad
-call    PickUpItem
+push    OFFSET inventory
+call    PickUpItem          ; Pick up the key if the user walks over it
 popad
 
 pushad
-call    UnlockDoor
+push    OFFSET  inventory
+call    UnlockDoor          ; Unlock the door if user has a key in their inventory
 popad
 
 ;-------------------------------------------------------------------------------------
