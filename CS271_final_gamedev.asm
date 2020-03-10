@@ -83,6 +83,20 @@ DrawInventory   PROC
     ret 8
 DrawInventory   ENDP
 
+PickUpItem  PROC
+    ; check if coordinate of the character equals that of the key
+    ; if so,
+        ; add the key to the player's inventory
+        ; remove it from the map
+PickUpItem  ENDP
+
+UnlockDoor  PROC
+    ; if coordinate of the player equals that of the stair,
+        ; if the player has the key in their inventory, (first item)
+            ; inc curMapNum
+            ; set inventory item equal to "?"
+UnlockDoor  ENDP
+
 ; ###########MAIN###########
 
 main PROC
@@ -187,7 +201,6 @@ DrawInv:
     push    OFFSET  inventory      ; push inventory offset into stack
     push    LENGTHOF    inventory  ; push count into stack
     call    DrawInventory   ; Draw the inventory
-
 
 KeyInput:
     KeyInputLoop:
