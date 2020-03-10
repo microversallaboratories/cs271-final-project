@@ -29,6 +29,8 @@ char        BYTE    "@", 0                             ; Character
 sharp       BYTE    "#", 0                             ; Sharp
 inventory   BYTE    10 DUP(?)                          ; Inventory; arr of chars
 spaces      DWORD    "  ",0                              ; double space for inventory formatting
+hline 		DWORD	"----------------",0		; line to separate inventory
+inventtitle	DWORD 	"INVENTORY:",0			; inventory title
 
 
 consoleHandle HANDLE 0
@@ -36,8 +38,35 @@ bytesWritten DWORD ?
 
 .code
 
+DrawSpaces 	PROC 
+
+	mov 	EDX,	OFFSET 	spaces 	; move doublespace character into edx
+	call 	WriteString 		; write the doublespace
+
+DrawSpaces 	ENDP 
+
+DrawHorizLine	PROC
+
+        mov     EDX,    OFFSET  hline 	; load the hline variable
+        call    WriteString 		; write the line
+        call    Crlf			; write newline
+
+DrawHorizLine 	ENDP
+
 DrawInventory   PROC
-    ; implement for-loop to loop through inventory items and print each one
+    
+    mov DL, 0
+    mov DH, 25
+    call Gotoxy
+	
+	call 	DrawHorizLine 	
+        mov     EDX,    OFFSET  inventtitle 		; ask if they'd like to make another calculation
+        call    WriteString				; draw inventory title
+        call    Crlf
+	call 	DrawHorizLine
+	call 	Crlf
+
+	; implement for-loop to loop through inventory items and print each one
     push    ebp
     mov ebp,    esp         ; preserve ebp
     mov esi,    [ebp+12]     ; address of inventory in esi; size of each element in the inventory * 3
@@ -52,7 +81,10 @@ DrawInventory   PROC
     ret 8
 DrawInventory   ENDP
 
+; ###########MAIN###########
+
 main PROC
+
 Setup:
     INVOKE SetConsoleTitle, ADDR gameTitle
     INVOKE GetStdHandle, STD_OUTPUT_HANDLE
