@@ -1,8 +1,7 @@
 TITLE gamedev     (CS271_final_gamedev.asm)
 
-; Author: 
-; Course / Project ID                 Date:
-; Description:
+; Author: Hojun Shin, Jacob North
+; Course / Project ID:  CS271
 
 INCLUDE Irvine32.inc
 INCLUDE Macros.inc
@@ -25,93 +24,24 @@ fileHandle  HANDLE ?
 charX       BYTE    1                               ; Size of DL: 1 byte - starting xpos
 charY       BYTE    1                               ; Size of DH: 1 byte - starting ypos
 char        BYTE    "@", 0                          ; Character
-keyX        BYTE    2                                   ; Starting key xposition
-keyY        BYTE    6                                   ; Starting key yposition
-keysymbol   BYTE    "k", 0                              ; Key
-stairX      BYTE    15                                  ; Starting stair xposition
-stairY      BYTE    2                                   ; Starting stair yposition
-stair       BYTE    "S", 0                              ; Stair
+keyX        BYTE    2                               ; Starting key xposition
+keyY        BYTE    6                               ; Starting key yposition
+keysymbol   BYTE    "k", 0                          ; Key
+stairX      BYTE    15                              ; Starting stair xposition
+stairY      BYTE    2                               ; Starting stair yposition
+stair       BYTE    "S", 0                          ; Stair
 endla       BYTE    10                              ; endline character 0a
 endld       BYTE    13                              ; endline character 0d
 sharp       BYTE    "#"                             ; sharp character
 inventory   BYTE    10 DUP(?)                       ; Inventory; arr of chars
-spaces      DWORD   ' ',0                          ; double space for inventory formatting
-hline 		BYTE	"----------------", 0		        ; Line to separate inventory
-inventtitle	BYTE 	"INVENTORY", 0			            ; Inventory title
+spaces      DWORD   ' ',0                           ; double space for inventory formatting
+hline 	      BYTE    "----------------", 0	  ; Line to separate inventory
+inventtitle     BYTE    "INVENTORY", 0			  ; Inventory title
 
 consoleHandle HANDLE 0
 bytesWritten DWORD ?
 
 .code
-
-;-------------------------------------------------------------------------------------
-DrawHorizLine	PROC 
-;
-;   Print a horizontal line to the terminal
-;   Receive:    hline
-;   Return:     none
-;------------------------------------------------------------------------------------- 
-        mov     EDX,    OFFSET  hline 	; load the hline variable
-        call    WriteString 		; write the line
-        call    Crlf			; write newline
-DrawHorizLine 	ENDP
-;------------------------------------------------------------------------------------- 
-
-;-------------------------------------------------------------------------------------
-PickUpItem  PROC
-;
-;   Grab an item below the user, and add to the their inventory
-;   Receive:    charX, charY, keyX, keyY, inventory
-;   Return:     changed keyX, keyY, and inventory
-;------------------------------------------------------------------------------------- 
-chkX:    
-    mov     al, charX
-    cmp     al,  keyX               ; if X coordinates match,
-    jne     notsame
-chkY:
-    mov     al, charY
-    cmp     al,  keyY               ; and if Y coordinates also match,
-    jne     notsame
-                                    ; if same x and y coordinates,
-    mov     al, keysymbol
-    mov     [inventory],    al      ; add the key to the player's inventory
-
-    notsame:                        ; else do nothing
-    ret
-PickUpItem  ENDP
-;------------------------------------------------------------------------------------- 
-
-;-------------------------------------------------------------------------------------
-UnlockDoor  PROC
-;
-;   Apply a key (if in the inventory) to unlock the door
-;   Receive:    charX, charY, stairX, stairY, inventory
-;   Return:     changed inventory, changed map
-;------------------------------------------------------------------------------------- 
-                                        ; if coordinate of the player equals that of the stair,
-chkX:    
-    mov     al, charX
-    cmp     al, stairX                  ; if X-coordinate matches,
-    jne     notsame
-chkY:
-    mov     al, charY
-    cmp     al, stairY                  ; and if Y-coordinate matches,
-    jne     notsame
-                                        ; if same x and y coordinates,
-chkKey:                                 ; If the player has the key,
-    mov     al, keysymbol
-    cmp     al,  [inventory]          ; if the key is in the first inventory position,
-    jne     notsame
-    ; else, if at correct X and Y, and player has the key,
-    mov     [inventory],  "?"          ; remove the key from the player's inventory
-    inc     curMapNum                   ; move to the next map
-
-notsame:                                ; else do nothing
-    ret
-
-UnlockDoor  ENDP
-;------------------------------------------------------------------------------------- 
-
 
 main PROC
 
@@ -142,7 +72,6 @@ Setup:
 GameLoop:
 
 DrawBackground:
-    ; Don't call Clrscr, as it is slow
     mov     DL, 0
     mov     DH, 0
     call    Gotoxy
@@ -170,11 +99,11 @@ DrawKey:
 ;   Receive:    keyX, keyY
 ;   Return:     printed key
 ;------------------------------------------------------------------------------------- 
-    mov DL, keyX            ; X-coordinate
-    mov DH, keyY            ; Y-coordinate
-    call    Gotoxy          ; locate cursor
+    mov DL, keyX                ; X-coordinate
+    mov DH, keyY                ; Y-coordinate
+    call    Gotoxy              ; locate cursor
 
-    INVOKE  WriteConsole,     ; Write character 'k'
+    INVOKE  WriteConsole,       ; Write character 'k'
         consoleHandle,
         ADDR    keysymbol,
         1,
@@ -189,11 +118,11 @@ DrawStair:
 ;   Receive:    stairX, stairY
 ;   Return:     printed staircase
 ;------------------------------------------------------------------------------------- 
-    mov DL, stairX            ; X-coordinate
-    mov DH, stairY            ; Y-coordinate
-    call    Gotoxy          ; locate cursor
+    mov DL, stairX              ; X-coordinate
+    mov DH, stairY              ; Y-coordinate
+    call    Gotoxy              ; locate cursor
 
-    INVOKE  WriteConsole,     ; Write character 'S'
+    INVOKE  WriteConsole,       ; Write character 'S'
         consoleHandle,
         ADDR    stair,
         1,
@@ -221,15 +150,15 @@ DrawCharacter:
 ;------------------------------------------------------------------------------------- 
 
 ;-------------------------------------------------------------------------------------
-; DrawInv:
+DrawInv:
 ;
 ;   Draw the inventory below the map
 ;   Receive:    inventory, lengthof inventory
 ;   Return:     printed inventory
 ;------------------------------------------------------------------------------------- 
-;    push    OFFSET inventory    ; push inventory offset into stack
-;    push    LENGTHOF inventory  ; push count into stack
-;    call    DrawInventory       ; Draw the inventory
+    push    OFFSET inventory    ; push inventory offset into stack
+    push    LENGTHOF inventory  ; push count into stack
+    call    DrawInventory       ; Draw the inventory
 ;------------------------------------------------------------------------------------- 
 
 Key:
@@ -245,6 +174,7 @@ GameExit:
     exit	                      ; exit to operating system
 
 main    ENDP
+
 
 ;-------------------------------------------------------------------------------------
 readMap     PROC
@@ -364,32 +294,24 @@ DrawInventory   PROC
 ;   Return:     none
 ;------------------------------------------------------------------------------------- 
     pushad
-    mov DL, 0
-    mov DH, 10
-    call Gotoxy
-	call    Crlf
-	; call 	DrawHorizLine 	
-    mov     EDX,    OFFSET  inventtitle 		; ask if they'd like to make another calculation
-    call    WriteString				; draw inventory title
+    mov     DL, 0
+    mov     DH, 10
+    call    Gotoxy
+    call    Crlf	
+    mov     EDX,    OFFSET  inventtitle 		
+    call    WriteString     ; draw inventory title
     call    Crlf
-    ; call 	DrawHorizLine
-	call 	Crlf
+    call 	  Crlf
     popad
 
-	; implement for-loop to loop through inventory items and print each one
     push    ebp
-    mov ebp,    esp         ; preserve ebp
-    mov esi,    [ebp+12]     ; address of inventory in esi; size of each element in the inventory * 3
-    mov ecx,    [ebp+8]     ; count in ecx
-    forloop:
-        mov eax,    [esi]    ; move the current element into the eax register
-        call    WriteString    ; write it out to the terminal
-        ; call    DrawSpaces
-        add     esi,    2   ; increment the instruction pointer
-        loop    forloop     ; loop
-    pop ebp
-	call 	Crlf
-    ret 8
+    mov     ebp,    esp         ; preserve ebp
+    mov     esi,    [ebp+12]    ; address of inventory in esi; size of each element in the inventory * 3
+    mov     ecx,    [ebp+8]     ; count in ecx
+    mov     EDX, ESI
+    call    WriteString
+    pop     ebp
+    ret     8
 DrawInventory   ENDP
 ;-------------------------------------------------------------------------------------
 
@@ -538,6 +460,77 @@ L4:
     pop     EBP
     ret     
 checkWall ENDP
+;-------------------------------------------------------------------------------------
+
+
+;-------------------------------------------------------------------------------------
+DrawHorizLine	PROC 
+;
+;   Print a horizontal line to the terminal
+;   Receive:    hline
+;   Return:     none
+;------------------------------------------------------------------------------------- 
+    mov     EDX,    OFFSET  hline 	; load the hline variable
+    call    WriteString 		; write the line
+    call    Crlf			; write newline
+DrawHorizLine 	ENDP
+;------------------------------------------------------------------------------------- 
+
+
+;-------------------------------------------------------------------------------------
+PickUpItem  PROC
+;
+;   Grab an item below the user, and add to the their inventory
+;   Receive:    charX, charY, keyX, keyY, inventory
+;   Return:     changed keyX, keyY, and inventory
+;------------------------------------------------------------------------------------- 
+chkX:    
+    mov     al, charX
+    cmp     al,  keyX               ; if X coordinates match,
+    jne     notsame
+chkY:
+    mov     al, charY
+    cmp     al,  keyY               ; and if Y coordinates also match,
+    jne     notsame
+                                    ; if same x and y coordinates,
+    mov     al, keysymbol
+    mov     [inventory], al         ; add the key to the player's inventory
+
+notsame:                            ; else do nothing
+    ret
+PickUpItem  ENDP
+;------------------------------------------------------------------------------------- 
+
+
+;-------------------------------------------------------------------------------------
+UnlockDoor  PROC
+;
+;   Apply a key (if in the inventory) to unlock the door
+;   Receive:    charX, charY, stairX, stairY, inventory
+;   Return:     changed inventory, changed map
+;------------------------------------------------------------------------------------- 
+                                        ; if coordinate of the player equals that of the stair,
+chkX:    
+    mov     al, charX
+    cmp     al, stairX                  ; if X-coordinate matches,
+    jne     notsame
+chkY:
+    mov     al, charY
+    cmp     al, stairY                  ; and if Y-coordinate matches,
+    jne     notsame
+                                        ; if same x and y coordinates,
+chkKey:                                 ; If the player has the key,
+    mov     al, keysymbol
+    cmp     al,  [inventory]            ; if the key is in the first inventory position,
+    jne     notsame
+    ; else, if at correct X and Y, and player has the key,
+    mov     [inventory],  "?"           ; remove the key from the player's inventory
+    inc     curMapNum                   ; move to the next map
+
+notsame:                                ; else do nothing
+    ret
+
+UnlockDoor  ENDP
 ;-------------------------------------------------------------------------------------
 
 END main
