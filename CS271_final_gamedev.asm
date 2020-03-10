@@ -212,9 +212,9 @@ DrawCharacter:
         0
 
 DrawInv:
-    ;push    OFFSET inventory    ; push inventory offset into stack
-    ;push    LENGTHOF inventory  ; push count into stack
-    ;call    DrawInventory       ; Draw the inventory
+    push    OFFSET inventory    ; push inventory offset into stack
+    push    LENGTHOF inventory  ; push count into stack
+    call    DrawInventory       ; Draw the inventory
 
 Key:
     push    OFFSET curMap       ; Put @curMap to stack as reference
